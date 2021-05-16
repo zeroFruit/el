@@ -5,8 +5,16 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 
+import java.time.Duration;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.TimeUnit;
+
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTimeout;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.fail;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.times;
@@ -18,8 +26,8 @@ public class DefaultPromiseTest {
 
     @Nested
     @DisplayName("On addListener() method")
-    class OnAddListenerMethod {
-        EventLoop eventLoop = mock(EventLoop.class);
+    class AddListenerMethod {
+        final EventLoop eventLoop = mock(EventLoop.class);
 
         @BeforeEach
         public void setup() {
@@ -42,6 +50,83 @@ public class DefaultPromiseTest {
 
             verify(listener1, times(1)).onComplete(any(Promise.class));
             verify(listener2, times(1)).onComplete(any(Promise.class));
+        }
+    }
+
+    @Nested
+    @DisplayName("On await() method")
+    class AwaitMethod {
+        final EventLoop eventLoop = mock(EventLoop.class);
+
+        @Test
+        @DisplayName("when timeout negative, throws exception")
+        public void testTimeoutNegative() {
+            assertThrows(IllegalArgumentException.class, () -> {
+                Promise<String> promise = new DefaultPromise<>(eventLoop);
+                promise.setSuccess("result");
+                promise.await(-1, TimeUnit.SECONDS);
+            });
+        }
+
+        @Test
+        @DisplayName("When promise completed, return true")
+        public void testDone() throws InterruptedException {
+            Promise<String> promise = new DefaultPromise<>(eventLoop);
+            promise.setSuccess("result");
+            assertTrue(promise.await(1, TimeUnit.SECONDS));
+        }
+
+        @Test
+        public void testTaskDoneWithinTimeout() {
+            assertTimeout(Duration.ofSeconds(1), () -> {
+                CountDownLatch latch = new CountDownLatch(1);
+                Promise<String> promise = new DefaultPromise<>(eventLoop);
+                Thread t1 = new Thread(() -> {
+                    try {
+                        assertTrue(promise.await(500, TimeUnit.MILLISECONDS));
+                        latch.countDown();
+                    } catch (InterruptedException e) {
+                        fail();
+                    }
+                });
+                Thread t2 = new Thread(() -> {
+                    try {
+                        Thread.sleep(100);
+                        promise.setSuccess("result");
+                    } catch (InterruptedException e) {
+                        fail();
+                    }
+                });
+                t1.start();
+                t2.start();
+                latch.await();
+            });
+        }
+
+        @Test
+        public void testTaskTimeout() {
+            assertTimeout(Duration.ofSeconds(1), () -> {
+                CountDownLatch latch = new CountDownLatch(1);
+                Promise<String> promise = new DefaultPromise<>(eventLoop);
+                Thread t1 = new Thread(() -> {
+                    try {
+                        assertFalse(promise.await(100, TimeUnit.MILLISECONDS));
+                        latch.countDown();
+                    } catch (InterruptedException e) {
+                        fail();
+                    }
+                });
+                Thread t2 = new Thread(() -> {
+                    try {
+                        Thread.sleep(500);
+                    } catch (InterruptedException e) {
+                        fail();
+                    }
+                });
+                t1.start();
+                t2.start();
+                latch.await();
+            });
         }
     }
 }

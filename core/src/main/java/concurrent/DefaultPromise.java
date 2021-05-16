@@ -8,6 +8,7 @@ import java.util.concurrent.TimeoutException;
 import java.util.concurrent.atomic.AtomicReferenceFieldUpdater;
 
 import static internal.ObjectUtil.checkNotNull;
+import static internal.ObjectUtil.checkPositiveOrZero;
 
 public class DefaultPromise<V> implements Promise<V> {
     private static final AtomicReferenceFieldUpdater<DefaultPromise, Object> resultUpdater =
@@ -82,8 +83,35 @@ public class DefaultPromise<V> implements Promise<V> {
     }
 
     @Override
-    public Promise<V> await(long timeout, TimeUnit unit) throws InterruptedException {
-        return null;
+    public boolean await(long timeout, TimeUnit unit) throws InterruptedException {
+        checkPositiveOrZero(timeout, "timeout");
+
+        long timeoutNanos = unit.toNanos(timeout);
+
+        if (isDone()) {
+            return true;
+        }
+        if (Thread.interrupted()) {
+            throw new InterruptedException(toString());
+        }
+
+        long startTime = System.nanoTime();
+        long timeLeft = timeoutNanos;
+        while (true) {
+            synchronized (this) {
+                if (isDone()) {
+                    return true;
+                }
+                wait(timeLeft / 1000000);
+                if (isDone()) {
+                    return true;
+                }
+                timeLeft = timeoutNanos - (System.nanoTime() - startTime);
+                if (timeLeft <= 0) {
+                    return isDone();
+                }
+            }
+        }
     }
 
     @Override
@@ -108,11 +136,13 @@ public class DefaultPromise<V> implements Promise<V> {
         return this;
     }
 
+    // TODO
     @Override
     public boolean cancel(boolean mayInterruptIfRunning) {
         return false;
     }
 
+    // TODO
     @Override
     public boolean isCancelled() {
         return false;
@@ -123,11 +153,13 @@ public class DefaultPromise<V> implements Promise<V> {
         return result != null || cause != null;
     }
 
+    // TODO
     @Override
     public V get() throws InterruptedException, ExecutionException {
         return null;
     }
 
+    // TODO
     @Override
     public V get(long timeout, TimeUnit unit) throws InterruptedException, ExecutionException, TimeoutException {
         return null;

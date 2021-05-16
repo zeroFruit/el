@@ -9,4 +9,11 @@ public final class ObjectUtil {
         }
         return arg;
     }
+
+    public static long checkPositiveOrZero(long l, String name) {
+        if (l < 0) {
+            throw new IllegalArgumentException(name + ": " + l + " (expected: >= 0)");
+        }
+        return l;
+    }
 }

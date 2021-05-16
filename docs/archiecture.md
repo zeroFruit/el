@@ -23,6 +23,13 @@
 
 - void onComplete(Promise promise) throws Exception
 
+### interface: EventLoop
+
+- boolean inEventLoop()
+- \<V> Promise\<V> newPromise()
+- ScheduledPromise\<?> schedule(Runnable command, delay, unit)
+- Promise<?> shutdownGracefully(quietPeriod, timeout, unit);
+
 ### abstract class: SingleThreadEventLoop
 
 

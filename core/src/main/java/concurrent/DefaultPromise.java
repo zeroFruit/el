@@ -2,6 +2,7 @@ package concurrent;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.CancellationException;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
@@ -136,16 +137,21 @@ public class DefaultPromise<V> implements Promise<V> {
         return this;
     }
 
-    // TODO
     @Override
     public boolean cancel(boolean mayInterruptIfRunning) {
+        if (isCancelled()) {
+            throw new IllegalStateException("Promise already cancelled: " + this);
+        }
+        if (causeUpdater.compareAndSet(this, null, new CancellationException())) {
+            notifyListeners();
+            return true;
+        }
         return false;
     }
 
-    // TODO
     @Override
     public boolean isCancelled() {
-        return false;
+        return cause instanceof CancellationException;
     }
 
     @Override

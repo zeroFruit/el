@@ -77,6 +77,7 @@ public class DefaultPromiseTest {
         }
 
         @Test
+        @DisplayName("When promise done within timeout, then success")
         public void testTaskDoneWithinTimeout() {
             assertTimeout(Duration.ofSeconds(1), () -> {
                 CountDownLatch latch = new CountDownLatch(1);
@@ -100,10 +101,12 @@ public class DefaultPromiseTest {
                 t1.start();
                 t2.start();
                 latch.await();
+                assertTrue(promise.isSuccess());
             });
         }
 
         @Test
+        @DisplayName("When promise not done within timeout, then fail")
         public void testTaskTimeout() {
             assertTimeout(Duration.ofSeconds(1), () -> {
                 CountDownLatch latch = new CountDownLatch(1);
@@ -126,7 +129,45 @@ public class DefaultPromiseTest {
                 t1.start();
                 t2.start();
                 latch.await();
+                assertFalse(promise.isSuccess());
             });
         }
+    }
+
+    @Nested
+    @DisplayName("On cancel() method")
+    class CancelMethod {
+        final EventLoop eventLoop = mock(EventLoop.class);
+
+        @BeforeEach
+        public void setup() {
+            when(eventLoop.inEventLoop()).thenReturn(true);
+        }
+
+        @Test
+        @DisplayName("When promise already cancelled, throw exceptions")
+        public void testCancelAlready() {
+            Promise<String> promise = new DefaultPromise<>(eventLoop);
+
+            assertTrue(promise.cancel(false));
+            assertThrows(IllegalStateException.class, () -> {
+                promise.cancel(false);
+            });
+        }
+
+        @Test
+        @DisplayName("When promise cancelled, notify listeners")
+        public void testNotifying() throws Exception {
+            Promise<String> promise = new DefaultPromise<>(eventLoop);
+
+            PromiseListener listener1 = mock(PromiseListener.class);
+            doNothing().when(listener1).onComplete(any(Promise.class));
+            promise.addListener(listener1);
+
+            assertTrue(promise.cancel(false));
+
+            verify(listener1, times(1)).onComplete(any(Promise.class));
+        }
+
     }
 }

@@ -1,4 +1,4 @@
-package concurrent;
+package io.el.concurrent;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;

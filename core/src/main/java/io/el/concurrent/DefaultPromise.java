@@ -1,4 +1,4 @@
-package concurrent;
+package io.el.concurrent;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -8,8 +8,8 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 import java.util.concurrent.atomic.AtomicReferenceFieldUpdater;
 
-import static internal.ObjectUtil.checkNotNull;
-import static internal.ObjectUtil.checkPositiveOrZero;
+import static io.el.internal.ObjectUtil.checkNotNull;
+import static io.el.internal.ObjectUtil.checkPositiveOrZero;
 
 public class DefaultPromise<V> implements Promise<V> {
     private static final AtomicReferenceFieldUpdater<DefaultPromise, Object> resultUpdater =

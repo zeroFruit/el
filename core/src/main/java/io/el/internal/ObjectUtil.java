@@ -1,4 +1,4 @@
-package internal;
+package io.el.internal;
 
 public final class ObjectUtil {
     private ObjectUtil() {}

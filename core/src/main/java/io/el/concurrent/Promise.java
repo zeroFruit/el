@@ -1,4 +1,4 @@
-package concurrent;
+package io.el.concurrent;
 
 import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;

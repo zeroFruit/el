@@ -9,6 +9,7 @@ import java.time.Duration;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTimeout;
@@ -35,7 +36,7 @@ public class DefaultPromiseTest {
         }
 
         @Test
-        @DisplayName("When after notifying once, same listener do not notify again")
+        @DisplayName("When after notifying once, then same listener do not notify again")
         public void testNoDoubleNotifying() throws Exception {
             Promise<String> promise = new DefaultPromise<>(eventLoop);
             promise.setSuccess("result");
@@ -59,7 +60,7 @@ public class DefaultPromiseTest {
         final EventLoop eventLoop = mock(EventLoop.class);
 
         @Test
-        @DisplayName("when timeout negative, throws exception")
+        @DisplayName("when timeout negative, then throws exception")
         public void testTimeoutNegative() {
             assertThrows(IllegalArgumentException.class, () -> {
                 Promise<String> promise = new DefaultPromise<>(eventLoop);
@@ -69,11 +70,11 @@ public class DefaultPromiseTest {
         }
 
         @Test
-        @DisplayName("When promise completed, return true")
+        @DisplayName("When promise completed, then return true")
         public void testDone() throws InterruptedException {
             Promise<String> promise = new DefaultPromise<>(eventLoop);
             promise.setSuccess("result");
-            assertTrue(promise.await(1, TimeUnit.SECONDS));
+            assertTrue(promise.await(1, TimeUnit.SECONDS).isDone());
         }
 
         @Test
@@ -84,7 +85,7 @@ public class DefaultPromiseTest {
                 Promise<String> promise = new DefaultPromise<>(eventLoop);
                 Thread t1 = new Thread(() -> {
                     try {
-                        assertTrue(promise.await(500, TimeUnit.MILLISECONDS));
+                        assertTrue(promise.await(500, TimeUnit.MILLISECONDS).isDone());
                         latch.countDown();
                     } catch (InterruptedException e) {
                         fail();
@@ -106,6 +107,83 @@ public class DefaultPromiseTest {
         }
 
         @Test
+        @DisplayName("When promise success within timeout, then success")
+        public void testTaskSuccessWithinTimeout() {
+            onTimeTestTemplate(new PromiseTimeoutTester<String>() {
+
+                @Override
+                public void test(Promise<String> promise) {
+                    promise.setSuccess("result");
+                }
+
+                @Override
+                public boolean expected() {
+                    return true;
+                }
+            });
+        }
+
+        @Test
+        @DisplayName("When promise failed within timeout, then failed")
+        public void testTaskFailedWithinTimeout() {
+            onTimeTestTemplate(new PromiseTimeoutTester() {
+                @Override
+                public void test(Promise promise) {
+                    promise.setFailure(new RuntimeException());
+                }
+
+                @Override
+                public boolean expected() {
+                    return false;
+                }
+            });
+        }
+
+        @Test
+        @DisplayName("When promise cancelled within timeout, then failed")
+        public void testTaskCancelledWithinTimeout() {
+            onTimeTestTemplate(new PromiseTimeoutTester() {
+                @Override
+                public void test(Promise promise) throws InterruptedException {
+                    promise.setFailure(new RuntimeException());
+                }
+
+                @Override
+                public boolean expected() {
+                    return false;
+                }
+            });
+        }
+
+        private void onTimeTestTemplate(PromiseTimeoutTester tester) {
+            assertTimeout(Duration.ofSeconds(1), () -> {
+                CountDownLatch latch = new CountDownLatch(1);
+                Promise<String> promise = new DefaultPromise<>(eventLoop);
+                Thread t1 = new Thread(() -> {
+                    try {
+                        promise.await();
+                    } catch (InterruptedException e) {
+                        fail();
+                    } finally {
+                        latch.countDown();
+                    }
+                });
+                Thread t2 = new Thread(() -> {
+                    try {
+                        Thread.sleep(100);
+                        tester.test(promise);
+                    } catch (InterruptedException e) {
+                        fail();
+                    }
+                });
+                t1.start();
+                t2.start();
+                latch.await();
+                assertEquals(promise.isSuccess(), tester.expected());
+            });
+        }
+
+        @Test
         @DisplayName("When promise not done within timeout, then fail")
         public void testTaskTimeout() {
             assertTimeout(Duration.ofSeconds(1), () -> {
@@ -113,7 +191,7 @@ public class DefaultPromiseTest {
                 Promise<String> promise = new DefaultPromise<>(eventLoop);
                 Thread t1 = new Thread(() -> {
                     try {
-                        assertFalse(promise.await(100, TimeUnit.MILLISECONDS));
+                        assertFalse(promise.await(100, TimeUnit.MILLISECONDS).isDone());
                         latch.countDown();
                     } catch (InterruptedException e) {
                         fail();
@@ -132,6 +210,7 @@ public class DefaultPromiseTest {
                 assertFalse(promise.isSuccess());
             });
         }
+
     }
 
     @Nested
@@ -145,7 +224,7 @@ public class DefaultPromiseTest {
         }
 
         @Test
-        @DisplayName("When promise already cancelled, throw exceptions")
+        @DisplayName("When promise already cancelled, then throw exceptions")
         public void testCancelAlready() {
             Promise<String> promise = new DefaultPromise<>(eventLoop);
 
@@ -156,7 +235,7 @@ public class DefaultPromiseTest {
         }
 
         @Test
-        @DisplayName("When promise cancelled, notify listeners")
+        @DisplayName("When promise cancelled, then notify listeners")
         public void testNotifying() throws Exception {
             Promise<String> promise = new DefaultPromise<>(eventLoop);
 
@@ -168,6 +247,10 @@ public class DefaultPromiseTest {
 
             verify(listener1, times(1)).onComplete(any(Promise.class));
         }
+    }
 
+    interface PromiseTimeoutTester<V> {
+        void test(Promise<V> promise) throws InterruptedException;
+        boolean expected();
     }
 }

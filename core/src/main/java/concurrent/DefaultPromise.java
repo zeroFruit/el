@@ -84,13 +84,13 @@ public class DefaultPromise<V> implements Promise<V> {
     }
 
     @Override
-    public boolean await(long timeout, TimeUnit unit) throws InterruptedException {
+    public Promise<V> await(long timeout, TimeUnit unit) throws InterruptedException {
         checkPositiveOrZero(timeout, "timeout");
 
         long timeoutNanos = unit.toNanos(timeout);
 
         if (isDone()) {
-            return true;
+            return this;
         }
         if (Thread.interrupted()) {
             throw new InterruptedException(toString());
@@ -101,48 +101,65 @@ public class DefaultPromise<V> implements Promise<V> {
         while (true) {
             synchronized (this) {
                 if (isDone()) {
-                    return true;
+                    return this;
                 }
                 wait(timeLeft / 1000000);
-                if (isDone()) {
-                    return true;
-                }
                 timeLeft = timeoutNanos - (System.nanoTime() - startTime);
                 if (timeLeft <= 0) {
-                    return isDone();
+                    return this;
                 }
             }
         }
     }
 
     @Override
-    public Promise<V> setSuccess(V result) {
+    public Promise<V> await() throws InterruptedException {
+        if (isDone()) {
+            return this;
+        }
+        if (Thread.interrupted()) {
+            throw new InterruptedException(toString());
+        }
+
+        synchronized (this) {
+            while (!isDone()) {
+                wait();
+            }
+        }
+        return this;
+    }
+
+    @Override
+    public synchronized Promise<V> setSuccess(V result) {
         if (isDone()) {
             throw new IllegalStateException("Promise already complete: " + this);
         }
         if (resultUpdater.compareAndSet(this, null, result)) {
+            notifyAll();
             notifyListeners();
         }
         return this;
     }
 
     @Override
-    public Promise<V> setFailure(Throwable cause) {
+    public synchronized Promise<V> setFailure(Throwable cause) {
         if (isDone()) {
             throw new IllegalStateException("Promise already complete: " + this);
         }
         if (causeUpdater.compareAndSet(this, null, cause)) {
+            notifyAll();
             notifyListeners();
         }
         return this;
     }
 
     @Override
-    public boolean cancel(boolean mayInterruptIfRunning) {
+    public synchronized boolean cancel(boolean mayInterruptIfRunning) {
         if (isCancelled()) {
             throw new IllegalStateException("Promise already cancelled: " + this);
         }
         if (causeUpdater.compareAndSet(this, null, new CancellationException())) {
+            notifyAll();
             notifyListeners();
             return true;
         }
@@ -159,15 +176,31 @@ public class DefaultPromise<V> implements Promise<V> {
         return result != null || cause != null;
     }
 
-    // TODO
     @Override
+    @SuppressWarnings("unchecked")
     public V get() throws InterruptedException, ExecutionException {
-        return null;
+        await();
+        if (cause == null) {
+            return (V) result;
+        }
+        if (cause instanceof CancellationException) {
+            throw (CancellationException) cause;
+        }
+        throw new ExecutionException(cause);
     }
 
-    // TODO
     @Override
+    @SuppressWarnings("unchecked")
     public V get(long timeout, TimeUnit unit) throws InterruptedException, ExecutionException, TimeoutException {
-        return null;
+        if (!await(timeout, unit).isDone()) {
+            throw new TimeoutException();
+        }
+        if (cause == null) {
+            return (V) result;
+        }
+        if (cause instanceof CancellationException) {
+            throw (CancellationException) cause;
+        }
+        throw new ExecutionException(cause);
     }
 }

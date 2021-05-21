@@ -6,8 +6,11 @@ import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 
 import java.time.Duration;
+import java.util.concurrent.CancellationException;
 import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
@@ -25,15 +28,16 @@ import static org.mockito.Mockito.when;
 @SuppressWarnings("unchecked")
 public class DefaultPromiseTest {
 
+    private final EventLoop eventLoop = mock(EventLoop.class);
+
+    @BeforeEach
+    public void setup() {
+        when(eventLoop.inEventLoop()).thenReturn(true);
+    }
+
     @Nested
     @DisplayName("On addListener() method")
     class AddListenerMethod {
-        final EventLoop eventLoop = mock(EventLoop.class);
-
-        @BeforeEach
-        public void setup() {
-            when(eventLoop.inEventLoop()).thenReturn(true);
-        }
 
         @Test
         @DisplayName("When after notifying once, then same listener do not notify again")
@@ -57,7 +61,6 @@ public class DefaultPromiseTest {
     @Nested
     @DisplayName("On await() method")
     class AwaitMethod {
-        final EventLoop eventLoop = mock(EventLoop.class);
 
         @Test
         @DisplayName("when timeout negative, then throws exception")
@@ -216,12 +219,6 @@ public class DefaultPromiseTest {
     @Nested
     @DisplayName("On cancel() method")
     class CancelMethod {
-        final EventLoop eventLoop = mock(EventLoop.class);
-
-        @BeforeEach
-        public void setup() {
-            when(eventLoop.inEventLoop()).thenReturn(true);
-        }
 
         @Test
         @DisplayName("When promise already cancelled, then throw exceptions")
@@ -246,6 +243,52 @@ public class DefaultPromiseTest {
             assertTrue(promise.cancel(false));
 
             verify(listener1, times(1)).onComplete(any(Promise.class));
+        }
+    }
+
+    @Nested
+    @DisplayName("On get() method")
+    class GetMethod {
+
+        @Test
+        @DisplayName("When promise failed, then throw exception")
+        public void testFailed() {
+            Promise<String> promise = new DefaultPromise<>(eventLoop);
+
+            assertThrows(ExecutionException.class, () -> {
+                promise.setFailure(new IllegalArgumentException());
+                promise.get();
+            });
+        }
+
+        @Test
+        @DisplayName("When promise cancelled, then throw cancel exception")
+        public void testCancelled() {
+            Promise<String> promise = new DefaultPromise<>(eventLoop);
+
+            assertThrows(CancellationException.class, () -> {
+                promise.cancel(false);
+                promise.get();
+            });
+        }
+
+        @Test
+        @DisplayName("When promise success, then return result")
+        public void testSuccess() throws ExecutionException, InterruptedException {
+            Promise<String> promise = new DefaultPromise<>(eventLoop);
+
+            promise.setSuccess("result");
+            assertEquals(promise.get(), "result");
+        }
+
+        @Test
+        @DisplayName("When promise timeout, then throw timeout exception")
+        public void testTimeout() {
+            Promise<String> promise = new DefaultPromise<>(eventLoop);
+
+            assertThrows(TimeoutException.class, () -> {
+                promise.get(100, TimeUnit.MILLISECONDS);
+            });
         }
     }
 

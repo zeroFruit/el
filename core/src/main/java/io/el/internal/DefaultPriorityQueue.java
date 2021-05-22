@@ -2,29 +2,24 @@ package io.el.internal;
 
 import java.util.AbstractQueue;
 import java.util.Arrays;
-import java.util.Comparator;
 import java.util.Iterator;
+import java.util.NoSuchElementException;
 
-import static io.el.internal.ObjectUtil.checkNotNull;
 import static io.el.internal.PriorityQueueNode.INDEX_NOT_IN_QUEUE;
-import static io.el.internal.PriorityQueueNode.PRIORITY_NOT_IN_QUEUE;
 
 public class DefaultPriorityQueue<T extends PriorityQueueNode> extends AbstractQueue<T> implements PriorityQueue<T> {
     private static final PriorityQueueNode[] EMPTY_ARRAY = new PriorityQueueNode[0];
-    private final Comparator<T> comparator;
     private T[] items;
     private int size;
 
     @SuppressWarnings("unchecked")
-    public DefaultPriorityQueue(Comparator<T> comparator, int initialSize) {
-        this.comparator = checkNotNull(comparator, "comparator");
+    public DefaultPriorityQueue(int initialSize) {
         this.items = (T[]) (initialSize != 0 ? new PriorityQueueNode[initialSize] : EMPTY_ARRAY);
     }
 
-    // TODO
     @Override
     public Iterator<T> iterator() {
-        return null;
+        return new PriorityQueueIterator();
     }
 
     @Override
@@ -62,22 +57,25 @@ public class DefaultPriorityQueue<T extends PriorityQueueNode> extends AbstractQ
     }
 
     @Override
+    @SuppressWarnings("unchecked")
     public T poll() {
         if (size == 0) {
             return null;
         }
         T result = items[0];
-        result.prioritize(PRIORITY_NOT_IN_QUEUE);
         result.index(INDEX_NOT_IN_QUEUE);
         size -= 1;
 
         T last = items[size];
         items[size] = null;
+
+        if (size == 0) {
+            items = (T[]) EMPTY_ARRAY;
+            return last;
+        }
         items[0] = last;
         last.index(0);
-        if (size != 0) {
-            heapify(0);
-        }
+        bubbleDown(0);
         return result;
     }
 
@@ -106,6 +104,7 @@ public class DefaultPriorityQueue<T extends PriorityQueueNode> extends AbstractQ
         }
         if (size == 1) {
             items = (T[]) EMPTY_ARRAY;
+            node.index(INDEX_NOT_IN_QUEUE);
             size = 0;
             return true;
         }
@@ -118,7 +117,7 @@ public class DefaultPriorityQueue<T extends PriorityQueueNode> extends AbstractQ
         moved.index(indexRemoved);
 
         size -= 1;
-        heapify(moved.index());
+        bubbleDown(moved.index());
         return true;
     }
 
@@ -140,10 +139,20 @@ public class DefaultPriorityQueue<T extends PriorityQueueNode> extends AbstractQ
         return node.index() != INDEX_NOT_IN_QUEUE && node.equals(items[node.index()]);
     }
 
-    // TODO
     @Override
     public void changePriority(T node) {
-
+        if (!contains(node)) {
+            return;
+        }
+        if (node.index() == 0) {
+            bubbleDown(0);
+            return;
+        }
+        if (node.priority() < parent(node.index()).priority()) {
+            bubbleUp(node);
+            return;
+        }
+        bubbleDown(node.index());
     }
 
     @Override
@@ -155,7 +164,7 @@ public class DefaultPriorityQueue<T extends PriorityQueueNode> extends AbstractQ
         return sb.toString();
     }
 
-    private void heapify(int i) {
+    private void bubbleDown(int i) {
         T node = items[i];
 
         if (isLeaf(node)) {
@@ -166,15 +175,21 @@ public class DefaultPriorityQueue<T extends PriorityQueueNode> extends AbstractQ
         T right = rightChild(node);
         int priority = node.priority();
 
-        if (left == null && priority > right.priority()) {
+        if (left == null) {
+            if (priority <= right.priority()) {
+                return;
+            }
             swap(node.index(), right.index());
-            heapify(node.index());
+            bubbleDown(node.index());
             return;
         }
 
-        if (right == null && priority > left.priority()) {
+        if (right == null) {
+            if (priority <= left.priority()) {
+                return;
+            }
             swap(node.index(), left.index());
-            heapify(node.index());
+            bubbleDown(node.index());
             return;
         }
 
@@ -183,11 +198,22 @@ public class DefaultPriorityQueue<T extends PriorityQueueNode> extends AbstractQ
         }
         if (left.priority() < right.priority()) {
             swap(node.index(), left.index());
-            heapify(node.index());
+            bubbleDown(node.index());
             return;
         }
         swap(node.index(), right.index());
-        heapify(node.index());
+        bubbleDown(node.index());
+    }
+
+    private void bubbleUp(T node) {
+        int current = node.index();
+        while (node.priority() < parent(current).priority()) {
+            int parentIndex = parent(current).index();
+            swap(current, parentIndex);
+            current = parentIndex;
+        }
+
+        node.index(current);
     }
 
     private boolean isLeaf(T node) {
@@ -215,5 +241,29 @@ public class DefaultPriorityQueue<T extends PriorityQueueNode> extends AbstractQ
 
         items[x].index(x);
         items[y].index(y);
+    }
+
+    private final class PriorityQueueIterator implements Iterator<T> {
+        private int index;
+
+        @Override
+        public boolean hasNext() {
+            return index < size;
+        }
+
+        @Override
+        public T next() {
+            if (index >= size) {
+                throw new NoSuchElementException();
+            }
+            T result = items[index];
+            index += 1;
+            return result;
+        }
+
+        @Override
+        public void remove() {
+            throw new UnsupportedOperationException("remove");
+        }
     }
 }

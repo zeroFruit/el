@@ -7,7 +7,6 @@ public interface PriorityQueueNode {
     int priority();
     void prioritize(int i);
 
-    // TODO: remove index data from Node model
     int index();
     void index(int i);
 }

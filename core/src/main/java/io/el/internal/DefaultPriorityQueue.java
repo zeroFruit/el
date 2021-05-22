@@ -86,10 +86,40 @@ public class DefaultPriorityQueue<T extends PriorityQueueNode> extends AbstractQ
         return (size == 0) ? null : items[0];
     }
 
-    // TODO
+    @Override
+    public boolean remove(Object e) {
+        if (!(e instanceof PriorityQueueNode)) {
+            return false;
+        }
+        return remove((PriorityQueueNode) e);
+    }
+
     @Override
     public boolean removeTyped(T node) {
-        return false;
+        return remove(node);
+    }
+
+    @SuppressWarnings("unchecked")
+    private boolean remove(PriorityQueueNode node) {
+        if (!contains(node)) {
+            return false;
+        }
+        if (size == 1) {
+            items = (T[]) EMPTY_ARRAY;
+            size = 0;
+            return true;
+        }
+
+        int indexRemoved = node.index();
+        node.index(INDEX_NOT_IN_QUEUE);
+
+        T moved = items[size - 1];
+        items[indexRemoved] = moved;
+        moved.index(indexRemoved);
+
+        size -= 1;
+        heapify(moved.index());
+        return true;
     }
 
     @Override

@@ -92,39 +92,6 @@ public class DefaultPriorityQueueTest {
         assertSame(c, queue.peek());
     }
 
-//    @Test
-//    public void testClearIgnoringIndexes() {
-//        PriorityQueue<TestElement> queue = new DefaultPriorityQueue<TestElement>(TestElementComparator.INSTANCE, 0);
-//        assertEmptyQueue(queue);
-//
-//        TestElement a = new TestElement(5);
-//        TestElement b = new TestElement(10);
-//        TestElement c = new TestElement(2);
-//        TestElement d = new TestElement(6);
-//        TestElement e = new TestElement(11);
-//
-//        assertOffer(queue, a);
-//        assertOffer(queue, b);
-//        assertOffer(queue, c);
-//        assertOffer(queue, d);
-//
-//        queue.clearIgnoringIndexes();
-//        assertEmptyQueue(queue);
-//
-//        // Elements cannot be re-inserted but new ones can.
-//        try {
-//            queue.offer(a);
-//            fail();
-//        } catch (IllegalArgumentException t) {
-//            // expected
-//            System.out.println(t);
-//        }
-//
-//        assertOffer(queue, e);
-//        assertSame(e, queue.peek());
-//        assertSame(1, queue.size());
-//    }
-
     @Test
     public void testRemoval() {
         testRemoval(false);

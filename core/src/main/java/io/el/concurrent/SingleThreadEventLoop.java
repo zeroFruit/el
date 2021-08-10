@@ -33,8 +33,8 @@ public abstract class SingleThreadEventLoop extends AbstractEventLoop {
         return Thread.currentThread() == this.thread;
     }
     @Override
-    public <V> Promise<V> newPromise() {
-        return new DefaultPromise<V>(this);
+    public <V> Task<V> newTask() {
+        return new DefaultTask<V>(this);
     }
 
     @Override
@@ -149,7 +149,6 @@ public abstract class SingleThreadEventLoop extends AbstractEventLoop {
                         System.out.println("An event executor terminated with " +
                                 "non-empty task queue (" + numUserTasks + ')');
                     }
-                    // terminationPromise set success
                 }
             }
         });

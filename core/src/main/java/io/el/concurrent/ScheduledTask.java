@@ -11,9 +11,9 @@ public class ScheduledTask<V> extends DefaultTask<V> implements Runnable, Priori
     return deadlineNanos < 0 ? Long.MAX_VALUE : deadlineNanos;
   }
 
-  final private long deadlineNanos;
+  private final long deadlineNanos;
 
-  private Runnable task;
+  private final Runnable task;
 
   private int queueIndex = INDEX_NOT_IN_QUEUE;
   private long id;

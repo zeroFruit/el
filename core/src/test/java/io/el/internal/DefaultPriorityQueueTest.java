@@ -199,6 +199,36 @@ public class DefaultPriorityQueueTest {
         }
     }
 
+    @Test
+    public void testRemove() {
+        PriorityQueue<TestElement> queue = new DefaultPriorityQueue<TestElement>(0);
+        assertEmptyQueue(queue);
+
+        TestElement a = new TestElement(5);
+        TestElement b = new TestElement(10);
+        TestElement c = new TestElement(2);
+        TestElement d = new TestElement(7);
+
+        assertOffer(queue, a);
+        assertOffer(queue, b);
+        assertOffer(queue, c);
+        assertOffer(queue, d);
+
+        assertEquals(queue.remove().value, 2);
+        assertEquals(queue.size(), 3);
+
+        assertEquals(queue.remove().value, 5);
+        assertEquals(queue.size(), 2);
+
+        assertEquals(queue.remove().value, 7);
+        assertEquals(queue.size(), 1);
+
+        assertEquals(queue.remove().value, 10);
+        assertEquals(queue.size(), 0);
+
+        assertEmptyQueue(queue);
+    }
+
     private static void assertOffer(PriorityQueue<TestElement> queue, TestElement a) {
         assertTrue(queue.offer(a));
         assertTrue(queue.contains(a));

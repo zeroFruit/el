@@ -20,7 +20,7 @@ import static org.junit.jupiter.api.Assertions.fail;
 public class DefaultPriorityQueueTest {
     @Test
     public void testPoll() {
-        PriorityQueue<TestElement> queue = new DefaultPriorityQueue<TestElement>(0);
+        PriorityQueue<TestElement> queue = new DefaultPriorityQueue<TestElement>(0, new TestElementComparator());
         assertEmptyQueue(queue);
 
         TestElement a = new TestElement(5);
@@ -62,7 +62,7 @@ public class DefaultPriorityQueueTest {
 
     @Test
     public void testClear() {
-        PriorityQueue<TestElement> queue = new DefaultPriorityQueue<TestElement>(0);
+        PriorityQueue<TestElement> queue = new DefaultPriorityQueue<TestElement>(0, new TestElementComparator());
         assertEmptyQueue(queue);
 
         TestElement a = new TestElement(5);
@@ -103,7 +103,7 @@ public class DefaultPriorityQueueTest {
     }
 
     private static void testRemoval(boolean typed) {
-        PriorityQueue<TestElement> queue = new DefaultPriorityQueue<TestElement>(4);
+        PriorityQueue<TestElement> queue = new DefaultPriorityQueue<TestElement>(4, new TestElementComparator());
         assertEmptyQueue(queue);
 
         TestElement a = new TestElement(5);
@@ -152,7 +152,7 @@ public class DefaultPriorityQueueTest {
 
     @Test
     public void testChangePriority() {
-        PriorityQueue<TestElement> queue = new DefaultPriorityQueue<TestElement>(0);
+        PriorityQueue<TestElement> queue = new DefaultPriorityQueue<TestElement>(0, new TestElementComparator());
         assertEmptyQueue(queue);
         TestElement a = new TestElement(10);
         TestElement b = new TestElement(20);
@@ -201,7 +201,7 @@ public class DefaultPriorityQueueTest {
 
     @Test
     public void testRemove() {
-        PriorityQueue<TestElement> queue = new DefaultPriorityQueue<TestElement>(0);
+        PriorityQueue<TestElement> queue = new DefaultPriorityQueue<TestElement>(0, new TestElementComparator());
         assertEmptyQueue(queue);
 
         TestElement a = new TestElement(5);
@@ -278,16 +278,6 @@ public class DefaultPriorityQueueTest {
         @Override
         public int hashCode() {
             return value;
-        }
-
-        @Override
-        public int priority() {
-            return value;
-        }
-
-        @Override
-        public void prioritize(int i) {
-            value = i;
         }
 
         @Override

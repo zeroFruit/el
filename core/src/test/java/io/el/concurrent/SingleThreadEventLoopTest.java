@@ -36,20 +36,57 @@ public class SingleThreadEventLoopTest {
 
       CountDownLatch latch = new CountDownLatch(3);
 
-      assertTimeout(Duration.ofSeconds(5), () -> {
-        TestRunnable task1 = new TestRunnable("a", latch);
+      assertTimeout(Duration.ofSeconds(1), () -> {
+        TestRunnable task1 = new TestRunnable(latch);
         eventLoop.execute(task1);
 
-        TestRunnable task2 = new TestRunnable("b", latch);
-        eventLoop.schedule(task2, 2000, TimeUnit.MILLISECONDS);
+        TestRunnable task2 = new TestRunnable(latch);
+        eventLoop.schedule(task2, 200, TimeUnit.MILLISECONDS);
 
-        TestRunnable task3 = new TestRunnable("c", latch);
+        TestRunnable task3 = new TestRunnable(latch);
         eventLoop.execute(task3);
 
         latch.await();
 
         assertEquals(task1.order, 1);
         assertEquals(task2.order, 3);
+        assertEquals(task3.order, 2);
+      });
+    }
+
+    @Test
+    @DisplayName("When eventloop is given multiple scheduled tasks, then handle them in proper order")
+    public void runScheduledTasks() {
+      final SingleThreadEventLoop eventLoop = new SingleThreadEventLoop(
+          new ThreadPerTaskExecutor(Executors.defaultThreadFactory())
+      ) {
+        @Override
+        protected void run() {
+          while (!confirmShutdown()) {
+            Runnable task = takeTask();
+            if (task != null) {
+              task.run();
+            }
+          }
+        }
+      };
+
+      CountDownLatch latch = new CountDownLatch(3);
+
+      assertTimeout(Duration.ofSeconds(1), () -> {
+        TestRunnable task1 = new TestRunnable(latch);
+        eventLoop.schedule(task1, 600, TimeUnit.MILLISECONDS);
+
+        TestRunnable task2 = new TestRunnable(latch);
+        eventLoop.schedule(task2, 200, TimeUnit.MILLISECONDS);
+
+        TestRunnable task3 = new TestRunnable(latch);
+        eventLoop.schedule(task3, 400, TimeUnit.MILLISECONDS);
+
+        latch.await();
+
+        assertEquals(task1.order, 3);
+        assertEquals(task2.order, 1);
         assertEquals(task3.order, 2);
       });
     }
@@ -60,10 +97,8 @@ public class SingleThreadEventLoopTest {
 
     final CountDownLatch latch;
     int order;
-    String id;
 
-    TestRunnable(String id, CountDownLatch latch) {
-      this.id = id;
+    TestRunnable(CountDownLatch latch) {
       this.latch = latch;
     }
 

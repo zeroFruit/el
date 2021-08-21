@@ -4,6 +4,7 @@ import static io.el.internal.PriorityQueueNode.INDEX_NOT_IN_QUEUE;
 
 import java.util.AbstractQueue;
 import java.util.Arrays;
+import java.util.Comparator;
 import java.util.Iterator;
 import java.util.NoSuchElementException;
 
@@ -11,12 +12,16 @@ public class DefaultPriorityQueue<T extends PriorityQueueNode> extends AbstractQ
     PriorityQueue<T> {
 
   private static final PriorityQueueNode[] EMPTY_ARRAY = new PriorityQueueNode[0];
+
+  private final Comparator<T> comparator;
+
   private T[] items;
   private int size;
 
   @SuppressWarnings("unchecked")
-  public DefaultPriorityQueue(int initialSize) {
+  public DefaultPriorityQueue(int initialSize, Comparator<T> comparator) {
     this.items = (T[]) (initialSize != 0 ? new PriorityQueueNode[initialSize] : EMPTY_ARRAY);
+    this.comparator = comparator;
   }
 
   @Override
@@ -46,7 +51,7 @@ public class DefaultPriorityQueue<T extends PriorityQueueNode> extends AbstractQ
     items[size] = node;
 
     int current = size;
-    while (node.priority() < parent(current).priority()) {
+    while (comparator.compare(node, parent(current)) < 0) {
       int parentIndex = parent(current).index();
       swap(current, parentIndex);
       current = parentIndex;
@@ -157,7 +162,7 @@ public class DefaultPriorityQueue<T extends PriorityQueueNode> extends AbstractQ
       bubbleDown(0);
       return;
     }
-    if (node.priority() < parent(node.index()).priority()) {
+    if (comparator.compare(node, parent(node.index())) < 0) {
       bubbleUp(node);
       return;
     }
@@ -182,10 +187,9 @@ public class DefaultPriorityQueue<T extends PriorityQueueNode> extends AbstractQ
 
     T left = leftChild(node);
     T right = rightChild(node);
-    int priority = node.priority();
 
     if (left == null) {
-      if (priority <= right.priority()) {
+      if (comparator.compare(node, right) <= 0) {
         return;
       }
       swap(node.index(), right.index());
@@ -194,7 +198,7 @@ public class DefaultPriorityQueue<T extends PriorityQueueNode> extends AbstractQ
     }
 
     if (right == null) {
-      if (priority <= left.priority()) {
+      if (comparator.compare(node, left) <= 0) {
         return;
       }
       swap(node.index(), left.index());
@@ -202,10 +206,10 @@ public class DefaultPriorityQueue<T extends PriorityQueueNode> extends AbstractQ
       return;
     }
 
-    if (priority <= left.priority() && priority <= right.priority()) {
+    if (comparator.compare(node, left) <= 0 && comparator.compare(node, right) <= 0) {
       return;
     }
-    if (left.priority() < right.priority()) {
+    if (comparator.compare(left, right) < 0) {
       swap(node.index(), left.index());
       bubbleDown(node.index());
       return;
@@ -216,7 +220,7 @@ public class DefaultPriorityQueue<T extends PriorityQueueNode> extends AbstractQ
 
   private void bubbleUp(T node) {
     int current = node.index();
-    while (node.priority() < parent(current).priority()) {
+    while (comparator.compare(node, parent(current)) < 0) {
       int parentIndex = parent(current).index();
       swap(current, parentIndex);
       current = parentIndex;

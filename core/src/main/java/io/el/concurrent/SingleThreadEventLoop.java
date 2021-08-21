@@ -7,8 +7,10 @@ import io.el.internal.DefaultPriorityQueue;
 import io.el.internal.ObjectUtil;
 import io.el.internal.PriorityQueue;
 import io.el.internal.Time;
+import java.util.Comparator;
 import java.util.Queue;
 import java.util.concurrent.BlockingQueue;
+import java.util.concurrent.Delayed;
 import java.util.concurrent.Executor;
 import java.util.concurrent.LinkedBlockingDeque;
 import java.util.concurrent.RejectedExecutionException;
@@ -19,6 +21,9 @@ public abstract class SingleThreadEventLoop extends AbstractEventLoop {
   private static final int INITIAL_QUEUE_CAPACITY = 16;
   private static final AtomicReferenceFieldUpdater<SingleThreadEventLoop, State> stateUpdater =
       AtomicReferenceFieldUpdater.newUpdater(SingleThreadEventLoop.class, State.class, "state");
+  private static final Comparator<ScheduledTask<?>> SCHEDULED_FUTURE_TASK_COMPARATOR =
+      ScheduledTask::compareTo;
+
   private final Executor executor;
   private volatile Thread thread;
   private volatile State state = State.NOT_STARTED;
@@ -31,7 +36,9 @@ public abstract class SingleThreadEventLoop extends AbstractEventLoop {
   public SingleThreadEventLoop(Executor executor) {
     this.executor = executor;
     this.taskQueue = new LinkedBlockingDeque<>(INITIAL_QUEUE_CAPACITY);
-    this.scheduledTaskQueue = new DefaultPriorityQueue<>(INITIAL_QUEUE_CAPACITY);
+    this.scheduledTaskQueue = new DefaultPriorityQueue<>(
+        INITIAL_QUEUE_CAPACITY,
+        SCHEDULED_FUTURE_TASK_COMPARATOR);
   }
 
   @Override

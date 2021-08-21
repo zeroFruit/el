@@ -281,16 +281,6 @@ public class DefaultPriorityQueueTest {
         }
 
         @Override
-        public int priority() {
-            return value;
-        }
-
-        @Override
-        public void prioritize(int i) {
-            value = i;
-        }
-
-        @Override
         public int index() {
             return index;
         }

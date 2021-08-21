@@ -36,16 +36,6 @@ public class ScheduledTask<V> extends DefaultTask<V> implements Runnable, Priori
   }
 
   @Override
-  public int priority() {
-    return queueIndex;
-  }
-
-  @Override
-  public void prioritize(int i) {
-
-  }
-
-  @Override
   public int index() {
     return queueIndex;
   }

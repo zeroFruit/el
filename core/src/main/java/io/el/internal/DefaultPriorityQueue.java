@@ -36,6 +36,7 @@ public class DefaultPriorityQueue<T extends PriorityQueueNode> extends AbstractQ
 
   @Override
   public void clear() {
+    items = (T[]) EMPTY_ARRAY;
     size = 0;
   }
 

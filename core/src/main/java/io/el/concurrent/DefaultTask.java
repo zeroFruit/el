@@ -17,7 +17,6 @@ public class DefaultTask<V> implements Task<V> {
       AtomicReferenceFieldUpdater.newUpdater(DefaultTask.class, Object.class, "result");
   private static final AtomicReferenceFieldUpdater<DefaultTask, Throwable> causeUpdater =
       AtomicReferenceFieldUpdater.newUpdater(DefaultTask.class, Throwable.class, "cause");
-  private static final Object SUCCESS = new Object();
 
   private final EventLoop eventLoop;
   private volatile Object result;

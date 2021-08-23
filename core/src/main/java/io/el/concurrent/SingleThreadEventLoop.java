@@ -167,7 +167,7 @@ public abstract class SingleThreadEventLoop extends AbstractEventLoop {
         try {
           // Run all remaining tasks
           while (true) {
-            if (canShutdown()) {
+            if (confirmShutdown()) {
               break;
             }
           }
@@ -190,7 +190,7 @@ public abstract class SingleThreadEventLoop extends AbstractEventLoop {
     });
   }
 
-  protected boolean canShutdown() {
+  protected boolean confirmShutdown() {
     if (!isShuttingDown()) {
       return false;
     }

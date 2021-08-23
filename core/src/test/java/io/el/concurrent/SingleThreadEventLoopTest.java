@@ -6,7 +6,6 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTimeout;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
-import io.el.internal.Time;
 import java.time.Duration;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.Executors;
@@ -30,7 +29,7 @@ public class SingleThreadEventLoopTest {
       ) {
         @Override
         protected void run() {
-          while (!canShutdown()) {
+          while (!confirmShutdown()) {
             Runnable task = takeTask();
             if (task != null) {
               task.run();
@@ -67,7 +66,7 @@ public class SingleThreadEventLoopTest {
       ) {
         @Override
         protected void run() {
-          while (!canShutdown()) {
+          while (!confirmShutdown()) {
             Runnable task = takeTask();
             if (task != null) {
               task.run();
@@ -108,7 +107,7 @@ public class SingleThreadEventLoopTest {
       ) {
         @Override
         protected void run() {
-          while (!canShutdown()) {
+          while (!confirmShutdown()) {
             Runnable task = takeTask();
             if (task != null) {
               task.run();
@@ -138,7 +137,7 @@ public class SingleThreadEventLoopTest {
       ) {
         @Override
         protected void run() {
-          while (!canShutdown()) {
+          while (!confirmShutdown()) {
             Runnable task = takeTask();
             if (task != null) {
               task.run();
@@ -161,7 +160,7 @@ public class SingleThreadEventLoopTest {
       ) {
         @Override
         protected void run() {
-          while (!canShutdown()) {
+          while (!confirmShutdown()) {
             Runnable task = takeTask();
             if (task != null) {
               task.run();
@@ -196,7 +195,7 @@ public class SingleThreadEventLoopTest {
       ) {
         @Override
         protected void run() {
-          while (!canShutdown()) {
+          while (!confirmShutdown()) {
             Runnable task = takeTask();
             if (task != null) {
               task.run();

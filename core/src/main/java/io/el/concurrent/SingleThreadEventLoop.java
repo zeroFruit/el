@@ -10,7 +10,6 @@ import io.el.internal.Time;
 import java.util.Comparator;
 import java.util.Queue;
 import java.util.concurrent.BlockingQueue;
-import java.util.concurrent.Delayed;
 import java.util.concurrent.Executor;
 import java.util.concurrent.LinkedBlockingDeque;
 import java.util.concurrent.RejectedExecutionException;
@@ -24,14 +23,16 @@ public abstract class SingleThreadEventLoop extends AbstractEventLoop {
   private static final Comparator<ScheduledTask<?>> SCHEDULED_FUTURE_TASK_COMPARATOR =
       ScheduledTask::compareTo;
 
-  private final Executor executor;
   private volatile Thread thread;
   private volatile State state = State.NOT_STARTED;
 
-  private Queue<Runnable> taskQueue;
-  private PriorityQueue<ScheduledTask<?>> scheduledTaskQueue;
+  private final Executor executor;
+  private final Queue<Runnable> taskQueue;
+  private final PriorityQueue<ScheduledTask<?>> scheduledTaskQueue;
 
   private long nextTaskId;
+  private long shutdownStartNanos;
+  private long shutdownTimeoutNanos;
 
   public SingleThreadEventLoop(Executor executor) {
     this.executor = executor;
@@ -51,18 +52,12 @@ public abstract class SingleThreadEventLoop extends AbstractEventLoop {
     return new DefaultTask<V>(this);
   }
 
-  // TODO: Add test case
   @Override
-  public boolean shutdownGracefully(long quietPeriod, long timeout, TimeUnit unit) {
-    if (!inEventLoop()) {
-      return false;
-    }
+  public boolean shutdownGracefully(long timeout, TimeUnit unit) {
     checkNotNull(unit, "unit");
-    checkPositiveOrZero(quietPeriod, "quietPeriod");
-    if (timeout < quietPeriod) {
-      throw new IllegalArgumentException(
-          "timeout: " + timeout + " (expected >= quietPeriod (" + quietPeriod + "))");
-    }
+    checkPositiveOrZero(timeout, "timeout");
+
+    shutdownStartNanos = Time.currentNanos();
 
     if (isShuttingDown()) {
       return true;
@@ -76,6 +71,9 @@ public abstract class SingleThreadEventLoop extends AbstractEventLoop {
         break;
       }
     }
+
+    shutdownTimeoutNanos = unit.toNanos(timeout);
+
     return true;
   }
 
@@ -158,7 +156,7 @@ public abstract class SingleThreadEventLoop extends AbstractEventLoop {
       try {
         SingleThreadEventLoop.this.run();
       } catch (Throwable t) {
-        // TODO: Error handling
+        // TODO: add logging
       } finally {
         while (true) {
           if (state.compareTo(State.SHUTTING_DOWN) >= 0 ||
@@ -169,7 +167,7 @@ public abstract class SingleThreadEventLoop extends AbstractEventLoop {
         try {
           // Run all remaining tasks
           while (true) {
-            if (confirmShutdown()) {
+            if (canShutdown()) {
               break;
             }
           }
@@ -180,30 +178,35 @@ public abstract class SingleThreadEventLoop extends AbstractEventLoop {
               break;
             }
           }
-          // We have the final set of tasks in the queue now, no more can be added, run all remaining.
-          // No need to loop here, this is the final pass.
-          confirmShutdown();
         } finally {
           // drain tasks
-          int numUserTasks = drainTasks();
-          if (numUserTasks > 0) {
+          int numTasks = drainTasks();
+          if (numTasks > 0) {
             System.out.println("An event executor terminated with " +
-                "non-empty task queue (" + numUserTasks + ')');
+                "non-empty task queue (" + numTasks + ')');
           }
         }
       }
     });
   }
 
-  protected boolean confirmShutdown() {
+  protected boolean canShutdown() {
     if (!isShuttingDown()) {
       return false;
     }
     if (!inEventLoop()) {
       throw new IllegalStateException("must be invoked from an event loop");
     }
+    cancelScheduledTasks();
     runAllTasks();
+    if (Time.currentNanos() - shutdownStartNanos > shutdownTimeoutNanos) {
+      return true;
+    }
     return isShutdown();
+  }
+
+  private void cancelScheduledTasks() {
+    scheduledTaskQueue().clear();
   }
 
   protected Runnable takeTask() {
@@ -223,8 +226,8 @@ public abstract class SingleThreadEventLoop extends AbstractEventLoop {
 
   private void addTask(Runnable task) {
     checkNotNull(task, "task");
-    if (isShutdown()) {
-      throw new RejectedExecutionException("EventLoop terminated");
+    if (isShuttingDown()) {
+      throw new RejectedExecutionException("Event loop is terminating...");
     }
     if (task instanceof ScheduledTask) {
       scheduledTaskQueue.add((ScheduledTask<?>) task);
@@ -233,17 +236,20 @@ public abstract class SingleThreadEventLoop extends AbstractEventLoop {
     taskQueue.add(task);
   }
 
-  // FIXME: Tasks in the scheduledTaskQueue should be moved to taskQueue, then process them all
   private void runAllTasks() {
     if (!inEventLoop()) {
       return;
     }
     while (true) {
-      Runnable task = scheduledTaskQueue.poll();
+      Runnable task = takeTask();
       if (task == null) {
         break;
       }
-      execute(task);
+      try {
+        task.run();
+      } catch (Throwable t) {
+        // FIXME: add logging
+      }
     }
   }
 
@@ -253,7 +259,7 @@ public abstract class SingleThreadEventLoop extends AbstractEventLoop {
       return 0;
     }
     while (true) {
-      Runnable task = scheduledTaskQueue.poll();
+      Runnable task = takeTask();
       if (task == null) {
         break;
       }

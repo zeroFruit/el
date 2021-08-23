@@ -35,6 +35,11 @@ public class DefaultPriorityQueue<T extends PriorityQueueNode> extends AbstractQ
   }
 
   @Override
+  public void clear() {
+    size = 0;
+  }
+
+  @Override
   public boolean offer(T node) {
     if (node.index() != INDEX_NOT_IN_QUEUE) {
       throw new IllegalArgumentException("Invalid node index: " + node.index());

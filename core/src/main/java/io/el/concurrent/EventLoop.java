@@ -8,5 +8,5 @@ public interface EventLoop {
 
   <V> Task<V> newTask();
 
-  boolean shutdownGracefully(long quietPeriod, long timeout, TimeUnit unit);
+  boolean shutdownGracefully(long timeout, TimeUnit unit);
 }

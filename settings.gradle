@@ -1,2 +1,4 @@
 rootProject.name = 'el'
 include 'core'
+include 'example'
+

@@ -9,4 +9,6 @@ public interface EventLoop {
   <V> Task<V> newTask();
 
   boolean shutdownGracefully(long timeout, TimeUnit unit);
+
+  boolean idle();
 }

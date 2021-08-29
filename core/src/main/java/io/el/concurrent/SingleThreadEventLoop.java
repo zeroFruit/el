@@ -102,6 +102,12 @@ public abstract class SingleThreadEventLoop extends AbstractEventLoop {
     start();
   }
 
+  @Override
+  public boolean idle() {
+    LOGGER.info("TaskQueue size: {}", taskQueue.size());
+    return taskQueue.size() == 0;
+  }
+
   public ScheduledTask<?> schedule(Runnable command, long delay, TimeUnit unit) {
     ObjectUtil.checkNotNull(command, "command");
     ObjectUtil.checkNotNull(unit, "unit");

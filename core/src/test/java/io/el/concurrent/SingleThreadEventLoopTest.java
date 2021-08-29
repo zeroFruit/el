@@ -18,9 +18,58 @@ import org.junit.jupiter.api.Test;
 
 @SuppressWarnings("unchecked")
 public class SingleThreadEventLoopTest {
+
+  private static final class TestTask implements Runnable {
+
+    final AtomicInteger ORDER;
+
+    final CountDownLatch latch;
+    int order;
+
+    TestTask(AtomicInteger ORDER) {
+      this.latch = null;
+      this.ORDER = ORDER;
+    }
+
+    TestTask(CountDownLatch latch, AtomicInteger ORDER) {
+      this.latch = latch;
+      this.ORDER = ORDER;
+    }
+
+    @Override
+    public void run() {
+      order = ORDER.incrementAndGet();
+      if (latch == null) {
+        return;
+      }
+      latch.countDown();
+    }
+  }
+
+  private static final class TimeTakingTask implements Runnable {
+
+    long durationMillis;
+    boolean ran;
+
+    TimeTakingTask(long durationMillis) {
+      this.durationMillis = durationMillis;
+    }
+
+    @Override
+    public void run() {
+      try {
+        Thread.sleep(durationMillis);
+        ran = true;
+      } catch (InterruptedException e) {
+        // NO-OP
+      }
+    }
+  }
+
   @Nested
   @DisplayName("On takeTask() method")
   class TakeTaskMethod {
+
     @Test
     @DisplayName("When eventloop is given tasks, then execute them")
     public void runTasks() {
@@ -109,6 +158,7 @@ public class SingleThreadEventLoopTest {
   @Nested
   @DisplayName("On shutdownGracefully() method")
   class ShutdownGracefullyMethod {
+
     @Test
     @DisplayName("When eventloop shutdown gracefully and execute task, then throw exception")
     public void testAddTaskAfterShutdown() {
@@ -171,6 +221,7 @@ public class SingleThreadEventLoopTest {
         eventLoop.shutdownGracefully(0L, TimeUnit.MILLISECONDS);
       }
     }
+
     @Test
     @DisplayName("When eventloop shutdownGracefully, then remove all scheduled tasks")
     public void testRemoveAllScheduledTasks() throws InterruptedException {
@@ -246,51 +297,6 @@ public class SingleThreadEventLoopTest {
         assertTrue(eventLoop.isShutdown());
       } finally {
         eventLoop.shutdownGracefully(0L, TimeUnit.MILLISECONDS);
-      }
-    }
-  }
-
-  private static final class TestTask implements Runnable {
-    final AtomicInteger ORDER;
-
-    final CountDownLatch latch;
-    int order;
-
-    TestTask(AtomicInteger ORDER) {
-      this.latch = null;
-      this.ORDER = ORDER;
-    }
-
-    TestTask(CountDownLatch latch, AtomicInteger ORDER) {
-      this.latch = latch;
-      this.ORDER = ORDER;
-    }
-
-    @Override
-    public void run() {
-      order = ORDER.incrementAndGet();
-      if (latch == null) {
-        return;
-      }
-      latch.countDown();
-    }
-  }
-
-  private static final class TimeTakingTask implements Runnable {
-    long durationMillis;
-    boolean ran;
-
-    TimeTakingTask(long durationMillis) {
-      this.durationMillis = durationMillis;
-    }
-
-    @Override
-    public void run() {
-      try {
-        Thread.sleep(durationMillis);
-        ran = true;
-      } catch (InterruptedException e) {
-        // NO-OP
       }
     }
   }

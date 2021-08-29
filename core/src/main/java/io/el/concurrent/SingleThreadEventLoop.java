@@ -15,21 +15,22 @@ import java.util.concurrent.LinkedBlockingDeque;
 import java.util.concurrent.RejectedExecutionException;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicReferenceFieldUpdater;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 public abstract class SingleThreadEventLoop extends AbstractEventLoop {
+
+  private static final Logger LOGGER = LogManager.getLogger();
   private static final int INITIAL_QUEUE_CAPACITY = 16;
   private static final AtomicReferenceFieldUpdater<SingleThreadEventLoop, State> stateUpdater =
       AtomicReferenceFieldUpdater.newUpdater(SingleThreadEventLoop.class, State.class, "state");
   private static final Comparator<ScheduledTask<?>> SCHEDULED_FUTURE_TASK_COMPARATOR =
       ScheduledTask::compareTo;
-
-  private volatile Thread thread;
-  private volatile State state = State.NOT_STARTED;
-
   private final Executor executor;
   private final Queue<Runnable> taskQueue;
   private final PriorityQueue<ScheduledTask<?>> scheduledTaskQueue;
-
+  private volatile Thread thread;
+  private volatile State state = State.NOT_STARTED;
   private long nextTaskId;
   private long shutdownStartNanos;
   private long shutdownTimeoutNanos;
@@ -156,7 +157,7 @@ public abstract class SingleThreadEventLoop extends AbstractEventLoop {
       try {
         SingleThreadEventLoop.this.run();
       } catch (Throwable t) {
-        // TODO: add logging
+        LOGGER.error("An event loop terminated with unexpected exception. Exception:", t);
       } finally {
         while (true) {
           if (state.compareTo(State.SHUTTING_DOWN) >= 0 ||
@@ -182,8 +183,8 @@ public abstract class SingleThreadEventLoop extends AbstractEventLoop {
           // drain tasks
           int numTasks = drainTasks();
           if (numTasks > 0) {
-            System.out.println("An event executor terminated with " +
-                "non-empty task queue (" + numTasks + ')');
+            LOGGER.info("An event loop terminated with " +
+                "non-empty task queue ({})", numTasks);
           }
         }
       }
@@ -248,7 +249,7 @@ public abstract class SingleThreadEventLoop extends AbstractEventLoop {
       try {
         task.run();
       } catch (Throwable t) {
-        // FIXME: add logging
+        LOGGER.error("An event loop terminated with unexpected exception. Exception: ", t);
       }
     }
   }

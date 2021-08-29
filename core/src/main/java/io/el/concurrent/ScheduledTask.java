@@ -5,23 +5,22 @@ import io.el.internal.Time;
 import java.util.concurrent.Delayed;
 import java.util.concurrent.TimeUnit;
 
-public class ScheduledTask<V> extends DefaultTask<V> implements Runnable, PriorityQueueNode, Delayed {
-  static long deadlineNanos(long delay) {
-    long deadlineNanos = Time.currentNanos() + delay;
-    return deadlineNanos < 0 ? Long.MAX_VALUE : deadlineNanos;
-  }
+public class ScheduledTask<V> extends DefaultTask<V> implements Runnable, PriorityQueueNode,
+    Delayed {
 
   private final long deadlineNanos;
-
   private final Runnable task;
-
   private int queueIndex = INDEX_NOT_IN_QUEUE;
   private long id;
-
   public ScheduledTask(EventLoop eventLoop, Runnable task, long deadlineNanos) {
     super(eventLoop);
     this.task = task;
     this.deadlineNanos = deadlineNanos;
+  }
+
+  static long deadlineNanos(long delay) {
+    long deadlineNanos = Time.currentNanos() + delay;
+    return deadlineNanos < 0 ? Long.MAX_VALUE : deadlineNanos;
   }
 
   public long deadlineNanos() {

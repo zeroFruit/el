@@ -10,9 +10,12 @@ import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 import java.util.concurrent.atomic.AtomicReferenceFieldUpdater;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 public class DefaultTask<V> implements Task<V> {
 
+  private static final Logger LOGGER = LogManager.getLogger();
   private static final AtomicReferenceFieldUpdater<DefaultTask, Object> resultUpdater =
       AtomicReferenceFieldUpdater.newUpdater(DefaultTask.class, Object.class, "result");
   private static final AtomicReferenceFieldUpdater<DefaultTask, Throwable> causeUpdater =
@@ -65,8 +68,7 @@ public class DefaultTask<V> implements Task<V> {
         try {
           listener.onComplete(this);
         } catch (Exception e) {
-          // FIXME: logging error
-          e.printStackTrace();
+          LOGGER.error("A task terminated with unexpected exception. Exception: ", e);
         }
       }
       // At this point, listeners might be modified from other threads,

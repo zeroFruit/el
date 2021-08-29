@@ -39,22 +39,27 @@ public class SingleThreadEventLoopTest {
       };
 
       CountDownLatch latch = new CountDownLatch(3);
+      AtomicInteger ORDER = new AtomicInteger(0);
 
       assertTimeout(Duration.ofSeconds(1), () -> {
-        TestTask task1 = new TestTask(latch);
-        eventLoop.execute(task1);
+        try {
+          TestTask task1 = new TestTask(latch, ORDER);
+          eventLoop.execute(task1);
 
-        TestTask task2 = new TestTask(latch);
-        eventLoop.schedule(task2, 200, TimeUnit.MILLISECONDS);
+          TestTask task2 = new TestTask(latch, ORDER);
+          eventLoop.schedule(task2, 200, TimeUnit.MILLISECONDS);
 
-        TestTask task3 = new TestTask(latch);
-        eventLoop.execute(task3);
+          TestTask task3 = new TestTask(latch, ORDER);
+          eventLoop.execute(task3);
 
-        latch.await();
+          latch.await();
 
-        assertEquals(task1.order, 1);
-        assertEquals(task2.order, 3);
-        assertEquals(task3.order, 2);
+          assertEquals(task1.order, 1);
+          assertEquals(task2.order, 3);
+          assertEquals(task3.order, 2);
+        } finally {
+          eventLoop.shutdownGracefully(0L, TimeUnit.MILLISECONDS);
+        }
       });
     }
 
@@ -76,22 +81,27 @@ public class SingleThreadEventLoopTest {
       };
 
       CountDownLatch latch = new CountDownLatch(3);
+      AtomicInteger ORDER = new AtomicInteger(0);
 
       assertTimeout(Duration.ofSeconds(1), () -> {
-        TestTask task1 = new TestTask(latch);
-        eventLoop.schedule(task1, 600, TimeUnit.MILLISECONDS);
+        try {
+          TestTask task1 = new TestTask(latch, ORDER);
+          eventLoop.schedule(task1, 600, TimeUnit.MILLISECONDS);
 
-        TestTask task2 = new TestTask(latch);
-        eventLoop.schedule(task2, 200, TimeUnit.MILLISECONDS);
+          TestTask task2 = new TestTask(latch, ORDER);
+          eventLoop.schedule(task2, 200, TimeUnit.MILLISECONDS);
 
-        TestTask task3 = new TestTask(latch);
-        eventLoop.schedule(task3, 400, TimeUnit.MILLISECONDS);
+          TestTask task3 = new TestTask(latch, ORDER);
+          eventLoop.schedule(task3, 400, TimeUnit.MILLISECONDS);
 
-        latch.await();
+          latch.await();
 
-        assertEquals(task1.order, 3);
-        assertEquals(task2.order, 1);
-        assertEquals(task3.order, 2);
+          assertEquals(task1.order, 3);
+          assertEquals(task2.order, 1);
+          assertEquals(task3.order, 2);
+        } finally {
+          eventLoop.shutdownGracefully(0L, TimeUnit.MILLISECONDS);
+        }
       });
     }
   }
@@ -117,15 +127,20 @@ public class SingleThreadEventLoopTest {
       };
 
       CountDownLatch latch = new CountDownLatch(1);
+      AtomicInteger ORDER = new AtomicInteger(0);
 
       assertThrows(RejectedExecutionException.class, () -> {
-        eventLoop.execute(new TestTask(latch));
+        try {
+          eventLoop.execute(new TestTask(latch, ORDER));
 
-        latch.await();
+          latch.await();
 
-        assertTrue(eventLoop.shutdownGracefully(0L, TimeUnit.MILLISECONDS));
+          assertTrue(eventLoop.shutdownGracefully(0L, TimeUnit.MILLISECONDS));
 
-        eventLoop.execute(new TestTask());
+          eventLoop.execute(new TestTask(ORDER));
+        } finally {
+          eventLoop.shutdownGracefully(0L, TimeUnit.MILLISECONDS);
+        }
       });
     }
 
@@ -146,11 +161,15 @@ public class SingleThreadEventLoopTest {
         }
       };
 
-      assertTrue(eventLoop.shutdownGracefully(200, TimeUnit.MILLISECONDS));
+      try {
+        assertTrue(eventLoop.shutdownGracefully(200, TimeUnit.MILLISECONDS));
 
-      Thread.sleep(100);
+        Thread.sleep(100);
 
-      assertFalse(eventLoop.isShutdown());
+        assertFalse(eventLoop.isShutdown());
+      } finally {
+        eventLoop.shutdownGracefully(0L, TimeUnit.MILLISECONDS);
+      }
     }
     @Test
     @DisplayName("When eventloop shutdownGracefully, then remove all scheduled tasks")
@@ -169,22 +188,28 @@ public class SingleThreadEventLoopTest {
         }
       };
 
-      // Although task1 is scheduled to run after 100ms (which is < 200ms), event loop updates its
-      // state into SHUTTING_DOWN right after calling shutdownGracefully() and remove all scheduled
-      // tasks. So task1 is not running.
-      TestTask task1 = new TestTask();
-      ScheduledTask scheduledTask1 = eventLoop.schedule(task1, 100, TimeUnit.MILLISECONDS);
+      AtomicInteger ORDER = new AtomicInteger(0);
 
-      TestTask task2 = new TestTask();
-      ScheduledTask scheduledTask2 = eventLoop.schedule(task2, 300, TimeUnit.MILLISECONDS);
+      try {
+        // Although task1 is scheduled to run after 100ms (which is < 200ms), event loop updates its
+        // state into SHUTTING_DOWN right after calling shutdownGracefully() and remove all scheduled
+        // tasks. So task1 is not running.
+        TestTask task1 = new TestTask(ORDER);
+        ScheduledTask scheduledTask1 = eventLoop.schedule(task1, 100, TimeUnit.MILLISECONDS);
 
-      assertTrue(eventLoop.shutdownGracefully(200, TimeUnit.MILLISECONDS));
+        TestTask task2 = new TestTask(ORDER);
+        ScheduledTask scheduledTask2 = eventLoop.schedule(task2, 300, TimeUnit.MILLISECONDS);
 
-      Thread.sleep(300);
+        assertTrue(eventLoop.shutdownGracefully(200, TimeUnit.MILLISECONDS));
 
-      assertFalse(scheduledTask1.isDone());
-      assertFalse(scheduledTask2.isDone());
-      assertTrue(eventLoop.isShutdown());
+        Thread.sleep(300);
+
+        assertFalse(scheduledTask1.isDone());
+        assertFalse(scheduledTask2.isDone());
+        assertTrue(eventLoop.isShutdown());
+      } finally {
+        eventLoop.shutdownGracefully(0L, TimeUnit.MILLISECONDS);
+      }
     }
 
     @Test
@@ -204,35 +229,41 @@ public class SingleThreadEventLoopTest {
         }
       };
 
-      TimeTakingTask task1 = new TimeTakingTask(50);
-      eventLoop.execute(task1);
+      try {
+        TimeTakingTask task1 = new TimeTakingTask(50);
+        eventLoop.execute(task1);
 
-      // Although task2 has longer duration than timeout, it runs.
-      TimeTakingTask task2 = new TimeTakingTask(200);
-      eventLoop.execute(task2);
+        // Although task2 has longer duration than timeout, it runs.
+        TimeTakingTask task2 = new TimeTakingTask(200);
+        eventLoop.execute(task2);
 
-      assertTrue(eventLoop.shutdownGracefully(100, TimeUnit.MILLISECONDS));
+        assertTrue(eventLoop.shutdownGracefully(100, TimeUnit.MILLISECONDS));
 
-      Thread.sleep(300);
+        Thread.sleep(300);
 
-      assertTrue(task1.ran);
-      assertTrue(task2.ran);
-      assertTrue(eventLoop.isShutdown());
+        assertTrue(task1.ran);
+        assertTrue(task2.ran);
+        assertTrue(eventLoop.isShutdown());
+      } finally {
+        eventLoop.shutdownGracefully(0L, TimeUnit.MILLISECONDS);
+      }
     }
   }
 
   private static final class TestTask implements Runnable {
-    static AtomicInteger ORDER = new AtomicInteger(0);
+    final AtomicInteger ORDER;
 
     final CountDownLatch latch;
     int order;
 
-    TestTask() {
+    TestTask(AtomicInteger ORDER) {
       this.latch = null;
+      this.ORDER = ORDER;
     }
 
-    TestTask(CountDownLatch latch) {
+    TestTask(CountDownLatch latch, AtomicInteger ORDER) {
       this.latch = latch;
+      this.ORDER = ORDER;
     }
 
     @Override
@@ -246,8 +277,6 @@ public class SingleThreadEventLoopTest {
   }
 
   private static final class TimeTakingTask implements Runnable {
-    static AtomicInteger ORDER = new AtomicInteger(0);
-
     long durationMillis;
     boolean ran;
 

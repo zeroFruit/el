@@ -154,23 +154,14 @@ public class DefaultTask<V> implements Task<V> {
     return this;
   }
 
-  // FIXME: remove cancel feature
   @Override
   public synchronized boolean cancel(boolean mayInterruptIfRunning) {
-    if (isCancelled()) {
-      throw new IllegalStateException("Task already cancelled: " + this);
-    }
-    if (causeUpdater.compareAndSet(this, null, new CancellationException())) {
-      notifyAll();
-      notifyListeners();
-      return true;
-    }
-    return false;
+    throw new UnsupportedOperationException();
   }
 
   @Override
   public boolean isCancelled() {
-    return cause instanceof CancellationException;
+    return false;
   }
 
   @Override

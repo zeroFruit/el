@@ -12,6 +12,7 @@ public class ScheduledTask<V> extends DefaultTask<V> implements Runnable, Priori
   private final Runnable task;
   private int queueIndex = INDEX_NOT_IN_QUEUE;
   private long id;
+
   public ScheduledTask(EventLoop eventLoop, Runnable task, long deadlineNanos) {
     super(eventLoop);
     this.task = task;

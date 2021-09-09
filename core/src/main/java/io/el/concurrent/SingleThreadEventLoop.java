@@ -8,7 +8,9 @@ import io.el.internal.ObjectUtil;
 import io.el.internal.PriorityQueue;
 import io.el.internal.Time;
 import java.util.Comparator;
+import java.util.List;
 import java.util.Queue;
+import java.util.concurrent.AbstractExecutorService;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.Executor;
 import java.util.concurrent.LinkedBlockingDeque;
@@ -18,7 +20,7 @@ import java.util.concurrent.atomic.AtomicReferenceFieldUpdater;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
-public abstract class SingleThreadEventLoop extends AbstractEventLoop {
+public abstract class SingleThreadEventLoop extends AbstractExecutorService implements EventLoop {
 
   private static final Logger LOGGER = LogManager.getLogger();
   private static final int INITIAL_QUEUE_CAPACITY = 16;
@@ -126,6 +128,16 @@ public abstract class SingleThreadEventLoop extends AbstractEventLoop {
 
   public PriorityQueue<ScheduledPromise<?>> scheduledTaskQueue() {
     return scheduledPromiseQueue;
+  }
+
+  @Override
+  public void shutdown() {
+    throw new UnsupportedOperationException();
+  }
+
+  @Override
+  public List<Runnable> shutdownNow() {
+    throw new UnsupportedOperationException();
   }
 
   protected abstract void run();

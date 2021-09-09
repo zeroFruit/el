@@ -51,11 +51,6 @@ public abstract class SingleThreadEventLoop extends AbstractExecutorService impl
   }
 
   @Override
-  public <V> Promise<V> newTask() {
-    return new DefaultPromise<V>(this);
-  }
-
-  @Override
   public boolean shutdownGracefully(long timeout, TimeUnit unit) {
     checkNotNull(unit, "unit");
     checkPositiveOrZero(timeout, "timeout");

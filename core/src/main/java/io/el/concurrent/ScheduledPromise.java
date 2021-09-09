@@ -5,7 +5,7 @@ import io.el.internal.Time;
 import java.util.concurrent.Delayed;
 import java.util.concurrent.TimeUnit;
 
-public class ScheduledTask<V> extends DefaultTask<V> implements Runnable, PriorityQueueNode,
+public class ScheduledPromise<V> extends DefaultPromise<V> implements Runnable, PriorityQueueNode,
     Delayed {
 
   private final long deadlineNanos;
@@ -13,7 +13,7 @@ public class ScheduledTask<V> extends DefaultTask<V> implements Runnable, Priori
   private int queueIndex = INDEX_NOT_IN_QUEUE;
   private long id;
 
-  public ScheduledTask(EventLoop eventLoop, Runnable task, long deadlineNanos) {
+  public ScheduledPromise(EventLoop eventLoop, Runnable task, long deadlineNanos) {
     super(eventLoop);
     this.task = task;
     this.deadlineNanos = deadlineNanos;
@@ -28,7 +28,7 @@ public class ScheduledTask<V> extends DefaultTask<V> implements Runnable, Priori
     return deadlineNanos;
   }
 
-  ScheduledTask<V> setId(long id) {
+  ScheduledPromise<V> setId(long id) {
     if (this.id == 0L) {
       this.id = id;
     }
@@ -67,7 +67,7 @@ public class ScheduledTask<V> extends DefaultTask<V> implements Runnable, Priori
     if (this == o) {
       return 0;
     }
-    ScheduledTask<?> that = (ScheduledTask<?>) o;
+    ScheduledPromise<?> that = (ScheduledPromise<?>) o;
     long d = deadlineNanos() - that.deadlineNanos();
     if (d < 0) {
       return -1;

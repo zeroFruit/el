@@ -6,7 +6,7 @@ public interface EventLoop {
 
   boolean inEventLoop();
 
-  <V> Task<V> newTask();
+  <V> Promise<V> newTask();
 
   boolean shutdownGracefully(long timeout, TimeUnit unit);
 }

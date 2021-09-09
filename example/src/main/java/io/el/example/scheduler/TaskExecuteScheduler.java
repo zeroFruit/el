@@ -1,4 +1,4 @@
-package io.el.example.tasks;
+package io.el.example.scheduler;
 
 import io.el.concurrent.SingleThreadEventLoop;
 import io.el.concurrent.ThreadPerTaskExecutor;
@@ -29,9 +29,9 @@ public class TaskExecuteScheduler extends SingleThreadEventLoop {
   public static void main(String[] args) throws InterruptedException {
     TaskExecuteScheduler scheduler = new TaskExecuteScheduler(
         new ThreadPerTaskExecutor(Executors.defaultThreadFactory()));
-    int MAX_DELAY = 10000;
-
-    for (int i = 0; i < 100; i += 1) {
+    int MAX_DELAY = 100000;
+    long start = System.currentTimeMillis();
+    for (int i = 0; i < 10000; i += 1) {
       long delayMillis = ThreadLocalRandom.current().nextInt(0, MAX_DELAY + 1);
 
       scheduler.schedule(
@@ -39,8 +39,8 @@ public class TaskExecuteScheduler extends SingleThreadEventLoop {
           delayMillis, TimeUnit.MILLISECONDS);
     }
 
-    LOGGER.info("Thread[{}] - Executed all tasks. Waiting for {} ms", Thread.currentThread().getName(), 2 * MAX_DELAY);
-    Thread.sleep(2 * MAX_DELAY);
+    LOGGER.info("Thread[{}] - Executed all tasks - {} ms", Thread.currentThread().getName(),  System.currentTimeMillis() - start);
+    Thread.sleep(MAX_DELAY + 2000);
 
     scheduler.shutdownGracefully(100, TimeUnit.MILLISECONDS);
     LOGGER.info("Thread[{}] - Shutdown scheduler gracefully", Thread.currentThread().getName());

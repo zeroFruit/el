@@ -68,7 +68,7 @@ public class SingleThreadEventLoopTest {
 
   @Nested
   @DisplayName("On takeTask() method")
-  class TakeTaskMethod {
+  class TakePromiseMethod {
 
     @Test
     @DisplayName("When eventloop is given tasks, then execute them")
@@ -246,17 +246,17 @@ public class SingleThreadEventLoopTest {
         // state into SHUTTING_DOWN right after calling shutdownGracefully() and remove all scheduled
         // tasks. So task1 is not running.
         TestTask task1 = new TestTask(ORDER);
-        ScheduledTask scheduledTask1 = eventLoop.schedule(task1, 100, TimeUnit.MILLISECONDS);
+        ScheduledPromise scheduledPromise1 = eventLoop.schedule(task1, 100, TimeUnit.MILLISECONDS);
 
         TestTask task2 = new TestTask(ORDER);
-        ScheduledTask scheduledTask2 = eventLoop.schedule(task2, 300, TimeUnit.MILLISECONDS);
+        ScheduledPromise scheduledPromise2 = eventLoop.schedule(task2, 300, TimeUnit.MILLISECONDS);
 
         assertTrue(eventLoop.shutdownGracefully(200, TimeUnit.MILLISECONDS));
 
         Thread.sleep(300);
 
-        assertFalse(scheduledTask1.isDone());
-        assertFalse(scheduledTask2.isDone());
+        assertFalse(scheduledPromise1.isDone());
+        assertFalse(scheduledPromise2.isDone());
         assertTrue(eventLoop.isShutdown());
       } finally {
         eventLoop.shutdownGracefully(0L, TimeUnit.MILLISECONDS);

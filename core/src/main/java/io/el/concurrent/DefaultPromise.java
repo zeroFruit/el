@@ -13,20 +13,20 @@ import java.util.concurrent.atomic.AtomicReferenceFieldUpdater;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
-public class DefaultTask<V> implements Task<V> {
+public class DefaultPromise<V> implements Promise<V> {
 
   private static final Logger LOGGER = LogManager.getLogger();
-  private static final AtomicReferenceFieldUpdater<DefaultTask, Object> resultUpdater =
-      AtomicReferenceFieldUpdater.newUpdater(DefaultTask.class, Object.class, "result");
-  private static final AtomicReferenceFieldUpdater<DefaultTask, Throwable> causeUpdater =
-      AtomicReferenceFieldUpdater.newUpdater(DefaultTask.class, Throwable.class, "cause");
+  private static final AtomicReferenceFieldUpdater<DefaultPromise, Object> resultUpdater =
+      AtomicReferenceFieldUpdater.newUpdater(DefaultPromise.class, Object.class, "result");
+  private static final AtomicReferenceFieldUpdater<DefaultPromise, Throwable> causeUpdater =
+      AtomicReferenceFieldUpdater.newUpdater(DefaultPromise.class, Throwable.class, "cause");
 
   private final EventLoop eventLoop;
   private volatile Object result;
   private volatile Throwable cause;
-  private List<TaskListener> listeners = new ArrayList<>();
+  private List<PromiseListener> listeners = new ArrayList<>();
 
-  public DefaultTask(EventLoop eventLoop) {
+  public DefaultPromise(EventLoop eventLoop) {
     this.eventLoop = eventLoop;
   }
 
@@ -36,7 +36,7 @@ public class DefaultTask<V> implements Task<V> {
   }
 
   @Override
-  public Task<V> addListener(TaskListener<? extends Task<? super V>> listener) {
+  public Promise<V> addListener(PromiseListener<? extends Promise<? super V>> listener) {
     checkNotNull(listener, "listener");
 
     synchronized (this) {
@@ -54,7 +54,7 @@ public class DefaultTask<V> implements Task<V> {
       return;
     }
 
-    List<TaskListener> listeners;
+    List<PromiseListener> listeners;
 
     synchronized (this) {
       if (this.listeners.isEmpty()) {
@@ -64,7 +64,7 @@ public class DefaultTask<V> implements Task<V> {
       this.listeners = new ArrayList<>();
     }
     while (true) {
-      for (TaskListener listener : listeners) {
+      for (PromiseListener listener : listeners) {
         try {
           listener.onComplete(this);
         } catch (Exception e) {
@@ -85,7 +85,7 @@ public class DefaultTask<V> implements Task<V> {
   }
 
   @Override
-  public Task<V> await(long timeout, TimeUnit unit) throws InterruptedException {
+  public Promise<V> await(long timeout, TimeUnit unit) throws InterruptedException {
     checkPositiveOrZero(timeout, "timeout");
 
     long timeoutNanos = unit.toNanos(timeout);
@@ -114,7 +114,7 @@ public class DefaultTask<V> implements Task<V> {
   }
 
   @Override
-  public Task<V> await() throws InterruptedException {
+  public Promise<V> await() throws InterruptedException {
     if (isDone()) {
       return this;
     }
@@ -131,7 +131,7 @@ public class DefaultTask<V> implements Task<V> {
   }
 
   @Override
-  public synchronized Task<V> setSuccess(V result) {
+  public synchronized Promise<V> setSuccess(V result) {
     if (isDone()) {
       throw new IllegalStateException("Task already complete: " + this);
     }
@@ -143,7 +143,7 @@ public class DefaultTask<V> implements Task<V> {
   }
 
   @Override
-  public synchronized Task<V> setFailure(Throwable cause) {
+  public synchronized Promise<V> setFailure(Throwable cause) {
     if (isDone()) {
       throw new IllegalStateException("Task already complete: " + this);
     }

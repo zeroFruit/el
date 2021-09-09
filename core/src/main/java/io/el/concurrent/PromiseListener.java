@@ -1,6 +1,6 @@
 package io.el.concurrent;
 
-public interface TaskListener<P extends Task<?>> {
+public interface PromiseListener<P extends Promise<?>> {
 
   void onComplete(P task) throws Exception;
 }

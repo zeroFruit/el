@@ -8,7 +8,9 @@ import io.el.internal.ObjectUtil;
 import io.el.internal.PriorityQueue;
 import io.el.internal.Time;
 import java.util.Comparator;
+import java.util.List;
 import java.util.Queue;
+import java.util.concurrent.AbstractExecutorService;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.Executor;
 import java.util.concurrent.LinkedBlockingDeque;
@@ -18,17 +20,17 @@ import java.util.concurrent.atomic.AtomicReferenceFieldUpdater;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
-public abstract class SingleThreadEventLoop extends AbstractEventLoop {
+public abstract class SingleThreadEventLoop extends AbstractExecutorService implements EventLoop {
 
   private static final Logger LOGGER = LogManager.getLogger();
   private static final int INITIAL_QUEUE_CAPACITY = 16;
   private static final AtomicReferenceFieldUpdater<SingleThreadEventLoop, State> stateUpdater =
       AtomicReferenceFieldUpdater.newUpdater(SingleThreadEventLoop.class, State.class, "state");
-  private static final Comparator<ScheduledTask<?>> SCHEDULED_FUTURE_TASK_COMPARATOR =
-      ScheduledTask::compareTo;
+  private static final Comparator<ScheduledPromise<?>> SCHEDULED_FUTURE_TASK_COMPARATOR =
+      ScheduledPromise::compareTo;
   private final Executor executor;
   private final Queue<Runnable> taskQueue;
-  private final PriorityQueue<ScheduledTask<?>> scheduledTaskQueue;
+  private final PriorityQueue<ScheduledPromise<?>> scheduledPromiseQueue;
   private volatile Thread thread;
   private volatile State state = State.NOT_STARTED;
   private long nextTaskId;
@@ -38,7 +40,7 @@ public abstract class SingleThreadEventLoop extends AbstractEventLoop {
   public SingleThreadEventLoop(Executor executor) {
     this.executor = executor;
     this.taskQueue = new LinkedBlockingDeque<>(INITIAL_QUEUE_CAPACITY);
-    this.scheduledTaskQueue = new DefaultPriorityQueue<>(
+    this.scheduledPromiseQueue = new DefaultPriorityQueue<>(
         INITIAL_QUEUE_CAPACITY,
         SCHEDULED_FUTURE_TASK_COMPARATOR);
   }
@@ -46,11 +48,6 @@ public abstract class SingleThreadEventLoop extends AbstractEventLoop {
   @Override
   public boolean inEventLoop() {
     return Thread.currentThread() == this.thread;
-  }
-
-  @Override
-  public <V> Task<V> newTask() {
-    return new DefaultTask<V>(this);
   }
 
   @Override
@@ -102,7 +99,7 @@ public abstract class SingleThreadEventLoop extends AbstractEventLoop {
     start();
   }
 
-  public ScheduledTask<?> schedule(Runnable command, long delay, TimeUnit unit) {
+  public ScheduledPromise<?> schedule(Runnable command, long delay, TimeUnit unit) {
     ObjectUtil.checkNotNull(command, "command");
     ObjectUtil.checkNotNull(unit, "unit");
     if (delay < 0L) {
@@ -110,22 +107,32 @@ public abstract class SingleThreadEventLoop extends AbstractEventLoop {
     }
 
     nextTaskId += 1;
-    ScheduledTask<?> task = new ScheduledTask<>(
+    ScheduledPromise<?> task = new ScheduledPromise<>(
         this,
         command,
-        ScheduledTask.deadlineNanos(unit.toNanos(delay)));
+        ScheduledPromise.deadlineNanos(unit.toNanos(delay)));
 
     if (!inEventLoop()) {
       execute(task);
       return task;
     }
 
-    scheduledTaskQueue.add(task.setId(nextTaskId));
+    scheduledPromiseQueue.add(task.setId(nextTaskId));
     return task;
   }
 
-  public PriorityQueue<ScheduledTask<?>> scheduledTaskQueue() {
-    return scheduledTaskQueue;
+  public PriorityQueue<ScheduledPromise<?>> scheduledTaskQueue() {
+    return scheduledPromiseQueue;
+  }
+
+  @Override
+  public void shutdown() {
+    throw new UnsupportedOperationException();
+  }
+
+  @Override
+  public List<Runnable> shutdownNow() {
+    throw new UnsupportedOperationException();
   }
 
   protected abstract void run();
@@ -216,8 +223,8 @@ public abstract class SingleThreadEventLoop extends AbstractEventLoop {
     }
     BlockingQueue<Runnable> taskQueue = (BlockingQueue<Runnable>) this.taskQueue;
     while (true) {
-      ScheduledTask<?> scheduledTask = peekScheduledTask();
-      if (scheduledTask == null) {
+      ScheduledPromise<?> scheduledPromise = peekScheduledTask();
+      if (scheduledPromise == null) {
         return taskQueue.poll();
       }
       queueScheduledTask();
@@ -228,13 +235,15 @@ public abstract class SingleThreadEventLoop extends AbstractEventLoop {
   private void addTask(Runnable task) {
     checkNotNull(task, "task");
     if (isShuttingDown()) {
-      throw new RejectedExecutionException("Event loop is terminating...");
+      throw new RejectedExecutionException("Event loop is terminating");
     }
-    if (task instanceof ScheduledTask) {
-      scheduledTaskQueue.add((ScheduledTask<?>) task);
+    if (task instanceof ScheduledPromise) {
+      scheduledPromiseQueue.add((ScheduledPromise<?>) task);
       return;
     }
-    taskQueue.add(task);
+    if (!taskQueue.offer(task)) {
+      throw new RejectedExecutionException("Event loop failed to add task");
+    }
   }
 
   private void runAllTasks() {
@@ -269,24 +278,24 @@ public abstract class SingleThreadEventLoop extends AbstractEventLoop {
     return numTasks;
   }
 
-  private ScheduledTask<?> peekScheduledTask() {
-    return this.scheduledTaskQueue.peek();
+  private ScheduledPromise<?> peekScheduledTask() {
+    return this.scheduledPromiseQueue.peek();
   }
 
   private Runnable pollScheduledTask(long nanoTime) {
     if (!inEventLoop()) {
       return null;
     }
-    ScheduledTask<?> scheduledTask = peekScheduledTask();
-    if (scheduledTask == null || scheduledTask.deadlineNanos() - nanoTime > 0) {
+    ScheduledPromise<?> scheduledPromise = peekScheduledTask();
+    if (scheduledPromise == null || scheduledPromise.deadlineNanos() - nanoTime > 0) {
       return null;
     }
-    scheduledTaskQueue.remove();
-    return scheduledTask;
+    scheduledPromiseQueue.remove();
+    return scheduledPromise;
   }
 
   private boolean queueScheduledTask() {
-    if (scheduledTaskQueue.isEmpty()) {
+    if (scheduledPromiseQueue.isEmpty()) {
       return true;
     }
     while (true) {
@@ -298,7 +307,7 @@ public abstract class SingleThreadEventLoop extends AbstractEventLoop {
       if (isAdded) {
         continue;
       }
-      scheduledTaskQueue.add((ScheduledTask<?>) scheduledTask);
+      scheduledPromiseQueue.add((ScheduledPromise<?>) scheduledTask);
       return false;
     }
   }

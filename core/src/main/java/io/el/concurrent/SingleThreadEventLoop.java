@@ -223,8 +223,7 @@ public abstract class SingleThreadEventLoop extends AbstractExecutorService impl
     }
     BlockingQueue<Runnable> taskQueue = (BlockingQueue<Runnable>) this.taskQueue;
     while (true) {
-      ScheduledPromise<?> scheduledPromise = peekScheduledTask();
-      if (scheduledPromise == null) {
+      if (peekScheduledTask() == null) {
         return taskQueue.poll();
       }
       queueScheduledTask();

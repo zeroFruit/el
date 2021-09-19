@@ -1,7 +1,8 @@
 # el
 
-**el** is a minimal event-loop framework inspired by [Netty Project](https://github.com/netty/netty).
+**el** is a minimal eventloop framework inspired by [Netty Project](https://github.com/netty/netty).
 
 ## Documentations
 
-- [Architecture](./docs/archiecture.md) 
+- [Architecture and Concept](./docs/archiecture.md) 
+

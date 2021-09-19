@@ -5,7 +5,7 @@ import io.el.internal.Time;
 import java.util.concurrent.Delayed;
 import java.util.concurrent.TimeUnit;
 
-public class ScheduledPromise<V> extends DefaultPromise<V> implements Runnable, PriorityQueueNode,
+public class ScheduledPromise<V> extends AbstractPromise<V> implements Runnable, PriorityQueueNode,
     Delayed {
 
   private final long deadlineNanos;
@@ -51,10 +51,6 @@ public class ScheduledPromise<V> extends DefaultPromise<V> implements Runnable, 
       return;
     }
     try {
-      if (isCancelled()) {
-        singleThreadEventLoop().scheduledTaskQueue().removeTyped(this);
-        return;
-      }
       task.run();
       setSuccess(null);
     } catch (Throwable cause) {

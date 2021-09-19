@@ -24,7 +24,7 @@ import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 
 @SuppressWarnings("unchecked")
-public class DefaultPromiseTest {
+public class AbstractPromiseTest {
 
   private final EventLoop eventLoop = mock(EventLoop.class);
 
@@ -40,6 +40,12 @@ public class DefaultPromiseTest {
     boolean expected();
   }
 
+  private static final class TestPromise<V> extends AbstractPromise<V> {
+    public TestPromise(EventLoop eventLoop) {
+      super(eventLoop);
+    }
+  }
+
   @Nested
   @DisplayName("On addListener() method")
   class AddListenerMethod {
@@ -47,7 +53,7 @@ public class DefaultPromiseTest {
     @Test
     @DisplayName("When after notifying once, then same listener do not notify again")
     public void testNoDoubleNotifying() throws Exception {
-      Promise<String> promise = new DefaultPromise<>(eventLoop);
+      Promise<String> promise = new TestPromise<>(eventLoop);
       promise.setSuccess("result");
 
       PromiseListener listener1 = mock(PromiseListener.class);
@@ -71,7 +77,7 @@ public class DefaultPromiseTest {
     @DisplayName("when timeout negative, then throws exception")
     public void testTimeoutNegative() {
       assertThrows(IllegalArgumentException.class, () -> {
-        Promise<String> promise = new DefaultPromise<>(eventLoop);
+        Promise<String> promise = new TestPromise<>(eventLoop);
         promise.setSuccess("result");
         promise.await(-1, TimeUnit.SECONDS);
       });
@@ -80,7 +86,7 @@ public class DefaultPromiseTest {
     @Test
     @DisplayName("When task completed, then return true")
     public void testDone() throws InterruptedException {
-      Promise<String> promise = new DefaultPromise<>(eventLoop);
+      Promise<String> promise = new TestPromise<>(eventLoop);
       promise.setSuccess("result");
       assertTrue(promise.await(1, TimeUnit.SECONDS).isDone());
     }
@@ -90,7 +96,7 @@ public class DefaultPromiseTest {
     public void testTaskDoneWithinTimeout() {
       assertTimeout(Duration.ofSeconds(1), () -> {
         CountDownLatch latch = new CountDownLatch(1);
-        Promise<String> promise = new DefaultPromise<>(eventLoop);
+        Promise<String> promise = new TestPromise<>(eventLoop);
         Thread t1 = new Thread(() -> {
           try {
             assertTrue(promise.await(500, TimeUnit.MILLISECONDS).isDone());
@@ -150,7 +156,7 @@ public class DefaultPromiseTest {
     private void onTimeTestTemplate(TaskTimeoutTester tester) {
       assertTimeout(Duration.ofSeconds(1), () -> {
         CountDownLatch latch = new CountDownLatch(1);
-        Promise<String> promise = new DefaultPromise<>(eventLoop);
+        Promise<String> promise = new TestPromise<>(eventLoop);
         Thread t1 = new Thread(() -> {
           try {
             promise.await();
@@ -180,7 +186,7 @@ public class DefaultPromiseTest {
     public void testTaskTimeout() {
       assertTimeout(Duration.ofSeconds(1), () -> {
         CountDownLatch latch = new CountDownLatch(1);
-        Promise<String> promise = new DefaultPromise<>(eventLoop);
+        Promise<String> promise = new TestPromise<>(eventLoop);
         Thread t1 = new Thread(() -> {
           try {
             assertFalse(promise.await(100, TimeUnit.MILLISECONDS).isDone());
@@ -212,7 +218,7 @@ public class DefaultPromiseTest {
     @Test
     @DisplayName("When task failed, then throw exception")
     public void testFailed() {
-      Promise<String> promise = new DefaultPromise<>(eventLoop);
+      Promise<String> promise = new TestPromise<>(eventLoop);
 
       assertThrows(ExecutionException.class, () -> {
         promise.setFailure(new IllegalArgumentException());
@@ -223,7 +229,7 @@ public class DefaultPromiseTest {
     @Test
     @DisplayName("When task success, then return result")
     public void testSuccess() throws ExecutionException, InterruptedException {
-      Promise<String> promise = new DefaultPromise<>(eventLoop);
+      Promise<String> promise = new TestPromise<>(eventLoop);
 
       promise.setSuccess("result");
       assertEquals(promise.get(), "result");
@@ -232,7 +238,7 @@ public class DefaultPromiseTest {
     @Test
     @DisplayName("When task timeout, then throw timeout exception")
     public void testTimeout() {
-      Promise<String> promise = new DefaultPromise<>(eventLoop);
+      Promise<String> promise = new TestPromise<>(eventLoop);
 
       assertThrows(TimeoutException.class, () -> {
         promise.get(100, TimeUnit.MILLISECONDS);

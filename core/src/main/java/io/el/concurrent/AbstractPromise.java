@@ -5,6 +5,7 @@ import static io.el.internal.ObjectUtil.checkPositiveOrZero;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.Callable;
 import java.util.concurrent.CancellationException;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
@@ -13,20 +14,20 @@ import java.util.concurrent.atomic.AtomicReferenceFieldUpdater;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
-public class DefaultPromise<V> implements Promise<V> {
+public abstract class AbstractPromise<V> implements Promise<V> {
 
   private static final Logger LOGGER = LogManager.getLogger();
-  private static final AtomicReferenceFieldUpdater<DefaultPromise, Object> resultUpdater =
-      AtomicReferenceFieldUpdater.newUpdater(DefaultPromise.class, Object.class, "result");
-  private static final AtomicReferenceFieldUpdater<DefaultPromise, Throwable> causeUpdater =
-      AtomicReferenceFieldUpdater.newUpdater(DefaultPromise.class, Throwable.class, "cause");
+  private static final AtomicReferenceFieldUpdater<AbstractPromise, Object> resultUpdater =
+      AtomicReferenceFieldUpdater.newUpdater(AbstractPromise.class, Object.class, "result");
+  private static final AtomicReferenceFieldUpdater<AbstractPromise, Throwable> causeUpdater =
+      AtomicReferenceFieldUpdater.newUpdater(AbstractPromise.class, Throwable.class, "cause");
 
   private final EventLoop eventLoop;
   private volatile Object result;
   private volatile Throwable cause;
   private List<PromiseListener> listeners = new ArrayList<>();
 
-  public DefaultPromise(EventLoop eventLoop) {
+  public AbstractPromise(EventLoop eventLoop) {
     this.eventLoop = eventLoop;
   }
 

@@ -1,11 +1,13 @@
 package io.el.concurrent;
 
+import java.util.concurrent.Callable;
+import java.util.concurrent.ExecutorService;
 import java.util.concurrent.TimeUnit;
 
 /**
  * A {@code EventLoop} represents the runner for running asynchronous computation
  * */
-public interface EventLoop {
+public interface EventLoop extends ExecutorService {
 
   /**
    * Returns {@code true} if current thread is running for {@link EventLoop}.
@@ -22,4 +24,14 @@ public interface EventLoop {
    * @return {@code true} if the {@link EventLoop} terminates without exception.
    * */
   boolean shutdownGracefully(long timeout, TimeUnit unit);
+
+  @Override
+  <V> Promise<V> submit(Callable<V> task);
+
+  @Override
+  Promise<?> submit(Runnable task);
+
+  ScheduledPromise<?> schedule(Runnable command, long delay, TimeUnit unit);
+
+  <V> ScheduledPromise<V> schedule(Callable<V> command, long delay, TimeUnit unit);
 }

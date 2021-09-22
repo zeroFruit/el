@@ -2,20 +2,26 @@ package io.el.concurrent;
 
 import io.el.internal.PriorityQueueNode;
 import io.el.internal.Time;
+import java.util.concurrent.Callable;
 import java.util.concurrent.Delayed;
+import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 
-public class ScheduledPromise<V> extends AbstractPromise<V> implements Runnable, PriorityQueueNode,
+public class ScheduledPromise<V> extends DefaultPromise<V> implements Runnable, PriorityQueueNode,
     Delayed {
 
   private final long deadlineNanos;
-  private final Runnable task;
   private int queueIndex = INDEX_NOT_IN_QUEUE;
   private long id;
 
+  @SuppressWarnings("unchecked")
   public ScheduledPromise(EventLoop eventLoop, Runnable task, long deadlineNanos) {
-    super(eventLoop);
-    this.task = task;
+    super(eventLoop, task);
+    this.deadlineNanos = deadlineNanos;
+  }
+
+  public ScheduledPromise(EventLoop eventLoop, Callable<V> task, long deadlineNanos) {
+    super(eventLoop, task);
     this.deadlineNanos = deadlineNanos;
   }
 
@@ -43,19 +49,6 @@ public class ScheduledPromise<V> extends AbstractPromise<V> implements Runnable,
   @Override
   public void index(int i) {
     queueIndex = i;
-  }
-
-  @Override
-  public void run() {
-    if (!eventLoop().inEventLoop()) {
-      return;
-    }
-    try {
-      task.run();
-      setSuccess(null);
-    } catch (Throwable cause) {
-      setFailure(cause);
-    }
   }
 
   @Override

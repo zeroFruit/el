@@ -24,7 +24,9 @@ import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 
 @SuppressWarnings("unchecked")
-public class AbstractPromiseTest {
+public class DefaultPromiseTest {
+
+  private final static Runnable NOOP = () -> {};
 
   private final EventLoop eventLoop = mock(EventLoop.class);
 
@@ -40,9 +42,9 @@ public class AbstractPromiseTest {
     boolean expected();
   }
 
-  private static final class TestPromise<V> extends AbstractPromise<V> {
-    public TestPromise(EventLoop eventLoop) {
-      super(eventLoop);
+  private static final class TestPromise<V> extends DefaultPromise<V> {
+    public TestPromise(EventLoop eventLoop, Runnable command) {
+      super(eventLoop, command);
     }
   }
 
@@ -53,8 +55,7 @@ public class AbstractPromiseTest {
     @Test
     @DisplayName("When after notifying once, then same listener do not notify again")
     public void testNoDoubleNotifying() throws Exception {
-      Promise<String> promise = new TestPromise<>(eventLoop);
-      promise.setSuccess("result");
+      Promise<String> promise = new TestPromise<>(eventLoop, NOOP);
 
       PromiseListener listener1 = mock(PromiseListener.class);
       doNothing().when(listener1).onComplete(any(Promise.class));
@@ -63,6 +64,8 @@ public class AbstractPromiseTest {
       PromiseListener listener2 = mock(PromiseListener.class);
       doNothing().when(listener2).onComplete(any(Promise.class));
       promise.addListener(listener2);
+
+      promise.run();
 
       verify(listener1, times(1)).onComplete(any(Promise.class));
       verify(listener2, times(1)).onComplete(any(Promise.class));
@@ -77,8 +80,7 @@ public class AbstractPromiseTest {
     @DisplayName("when timeout negative, then throws exception")
     public void testTimeoutNegative() {
       assertThrows(IllegalArgumentException.class, () -> {
-        Promise<String> promise = new TestPromise<>(eventLoop);
-        promise.setSuccess("result");
+        Promise<String> promise = new TestPromise<>(eventLoop, NOOP);
         promise.await(-1, TimeUnit.SECONDS);
       });
     }
@@ -86,8 +88,8 @@ public class AbstractPromiseTest {
     @Test
     @DisplayName("When task completed, then return true")
     public void testDone() throws InterruptedException {
-      Promise<String> promise = new TestPromise<>(eventLoop);
-      promise.setSuccess("result");
+      Promise<String> promise = new TestPromise<>(eventLoop, NOOP);
+      promise.run();
       assertTrue(promise.await(1, TimeUnit.SECONDS).isDone());
     }
 
@@ -96,7 +98,7 @@ public class AbstractPromiseTest {
     public void testTaskDoneWithinTimeout() {
       assertTimeout(Duration.ofSeconds(1), () -> {
         CountDownLatch latch = new CountDownLatch(1);
-        Promise<String> promise = new TestPromise<>(eventLoop);
+        Promise<String> promise = new TestPromise<>(eventLoop, NOOP);
         Thread t1 = new Thread(() -> {
           try {
             assertTrue(promise.await(500, TimeUnit.MILLISECONDS).isDone());
@@ -156,7 +158,7 @@ public class AbstractPromiseTest {
     private void onTimeTestTemplate(TaskTimeoutTester tester) {
       assertTimeout(Duration.ofSeconds(1), () -> {
         CountDownLatch latch = new CountDownLatch(1);
-        Promise<String> promise = new TestPromise<>(eventLoop);
+        Promise<String> promise = new TestPromise<>(eventLoop, NOOP);
         Thread t1 = new Thread(() -> {
           try {
             promise.await();
@@ -186,7 +188,7 @@ public class AbstractPromiseTest {
     public void testTaskTimeout() {
       assertTimeout(Duration.ofSeconds(1), () -> {
         CountDownLatch latch = new CountDownLatch(1);
-        Promise<String> promise = new TestPromise<>(eventLoop);
+        Promise<String> promise = new TestPromise<>(eventLoop, NOOP);
         Thread t1 = new Thread(() -> {
           try {
             assertFalse(promise.await(100, TimeUnit.MILLISECONDS).isDone());
@@ -218,7 +220,7 @@ public class AbstractPromiseTest {
     @Test
     @DisplayName("When task failed, then throw exception")
     public void testFailed() {
-      Promise<String> promise = new TestPromise<>(eventLoop);
+      Promise<String> promise = new TestPromise<>(eventLoop, NOOP);
 
       assertThrows(ExecutionException.class, () -> {
         promise.setFailure(new IllegalArgumentException());
@@ -229,7 +231,7 @@ public class AbstractPromiseTest {
     @Test
     @DisplayName("When task success, then return result")
     public void testSuccess() throws ExecutionException, InterruptedException {
-      Promise<String> promise = new TestPromise<>(eventLoop);
+      Promise<String> promise = new TestPromise<>(eventLoop, NOOP);
 
       promise.setSuccess("result");
       assertEquals(promise.get(), "result");
@@ -238,7 +240,7 @@ public class AbstractPromiseTest {
     @Test
     @DisplayName("When task timeout, then throw timeout exception")
     public void testTimeout() {
-      Promise<String> promise = new TestPromise<>(eventLoop);
+      Promise<String> promise = new TestPromise<>(eventLoop, NOOP);
 
       assertThrows(TimeoutException.class, () -> {
         promise.get(100, TimeUnit.MILLISECONDS);

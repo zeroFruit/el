@@ -8,27 +8,54 @@ import java.util.List;
 import java.util.concurrent.Callable;
 import java.util.concurrent.CancellationException;
 import java.util.concurrent.ExecutionException;
+import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 import java.util.concurrent.atomic.AtomicReferenceFieldUpdater;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
-public abstract class AbstractPromise<V> implements Promise<V> {
+public class DefaultPromise<V> implements Promise<V> {
 
+  private static final Object EMPTY_RESULT = new Object();
   private static final Logger LOGGER = LogManager.getLogger();
-  private static final AtomicReferenceFieldUpdater<AbstractPromise, Object> resultUpdater =
-      AtomicReferenceFieldUpdater.newUpdater(AbstractPromise.class, Object.class, "result");
-  private static final AtomicReferenceFieldUpdater<AbstractPromise, Throwable> causeUpdater =
-      AtomicReferenceFieldUpdater.newUpdater(AbstractPromise.class, Throwable.class, "cause");
+  private static final AtomicReferenceFieldUpdater<DefaultPromise, Object> resultUpdater =
+      AtomicReferenceFieldUpdater.newUpdater(DefaultPromise.class, Object.class, "result");
+  private static final AtomicReferenceFieldUpdater<DefaultPromise, Throwable> causeUpdater =
+      AtomicReferenceFieldUpdater.newUpdater(DefaultPromise.class, Throwable.class, "cause");
 
   private final EventLoop eventLoop;
+  private final Callable<V> task;
   private volatile Object result;
   private volatile Throwable cause;
   private List<PromiseListener> listeners = new ArrayList<>();
 
-  public AbstractPromise(EventLoop eventLoop) {
+  @SuppressWarnings("unchecked")
+  public DefaultPromise(EventLoop eventLoop, Runnable task) {
     this.eventLoop = eventLoop;
+    this.task = (Callable<V>) Executors.callable(task);
+  }
+
+  public DefaultPromise(EventLoop eventLoop, Callable<V> task) {
+    this.eventLoop = eventLoop;
+    this.task = task;
+  }
+
+  @Override
+  public void run() {
+    if (!eventLoop().inEventLoop()) {
+      return;
+    }
+    runTask();
+  }
+
+  private void runTask() {
+    try {
+      V result = task.call();
+      setSuccess(result);
+    } catch (Exception e) {
+      setFailure(e);
+    }
   }
 
   @Override
@@ -136,7 +163,8 @@ public abstract class AbstractPromise<V> implements Promise<V> {
     if (isDone()) {
       throw new IllegalStateException("Task already complete: " + this);
     }
-    if (resultUpdater.compareAndSet(this, null, result)) {
+    Object value = result == null ? EMPTY_RESULT : result;
+    if (resultUpdater.compareAndSet(this, null, value)) {
       notifyAll();
       notifyListeners();
     }

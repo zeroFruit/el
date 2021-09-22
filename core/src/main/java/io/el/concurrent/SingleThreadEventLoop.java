@@ -10,9 +10,10 @@ import io.el.internal.Time;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Queue;
-import java.util.concurrent.AbstractExecutorService;
 import java.util.concurrent.BlockingQueue;
+import java.util.concurrent.Callable;
 import java.util.concurrent.Executor;
+import java.util.concurrent.Executors;
 import java.util.concurrent.LinkedBlockingDeque;
 import java.util.concurrent.RejectedExecutionException;
 import java.util.concurrent.TimeUnit;
@@ -20,7 +21,7 @@ import java.util.concurrent.atomic.AtomicReferenceFieldUpdater;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
-public abstract class SingleThreadEventLoop extends AbstractExecutorService implements EventLoop {
+public abstract class SingleThreadEventLoop extends AbstractEventLoop {
 
   private static final Logger LOGGER = LogManager.getLogger();
   private static final int INITIAL_QUEUE_CAPACITY = 16;
@@ -28,7 +29,6 @@ public abstract class SingleThreadEventLoop extends AbstractExecutorService impl
       AtomicReferenceFieldUpdater.newUpdater(SingleThreadEventLoop.class, State.class, "state");
   private static final Comparator<ScheduledPromise<?>> SCHEDULED_FUTURE_TASK_COMPARATOR =
       ScheduledPromise::compareTo;
-  private final Executor executor;
   private final Queue<Runnable> taskQueue;
   private final PriorityQueue<ScheduledPromise<?>> scheduledPromiseQueue;
   private volatile Thread thread;
@@ -38,7 +38,7 @@ public abstract class SingleThreadEventLoop extends AbstractExecutorService impl
   private long shutdownTimeoutNanos;
 
   public SingleThreadEventLoop(Executor executor) {
-    this.executor = executor;
+    super(executor);
     this.taskQueue = new LinkedBlockingDeque<>(INITIAL_QUEUE_CAPACITY);
     this.scheduledPromiseQueue = new DefaultPriorityQueue<>(
         INITIAL_QUEUE_CAPACITY,
@@ -100,6 +100,10 @@ public abstract class SingleThreadEventLoop extends AbstractExecutorService impl
   }
 
   public ScheduledPromise<?> schedule(Runnable command, long delay, TimeUnit unit) {
+    return schedule(Executors.callable(command), delay, unit);
+  }
+
+  public <V> ScheduledPromise<V> schedule(Callable<V> command, long delay, TimeUnit unit) {
     ObjectUtil.checkNotNull(command, "command");
     ObjectUtil.checkNotNull(unit, "unit");
     if (delay < 0L) {
@@ -107,7 +111,7 @@ public abstract class SingleThreadEventLoop extends AbstractExecutorService impl
     }
 
     nextTaskId += 1;
-    ScheduledPromise<?> task = new ScheduledPromise<>(
+    ScheduledPromise<V> task = new ScheduledPromise<>(
         this,
         command,
         ScheduledPromise.deadlineNanos(unit.toNanos(delay)));
@@ -135,8 +139,6 @@ public abstract class SingleThreadEventLoop extends AbstractExecutorService impl
     throw new UnsupportedOperationException();
   }
 
-  protected abstract void run();
-
   private void start() {
     if (!state.equals(State.NOT_STARTED)) {
       return;
@@ -159,7 +161,7 @@ public abstract class SingleThreadEventLoop extends AbstractExecutorService impl
     if (thread != null) {
       return;
     }
-    executor.execute(() -> {
+    executor().execute(() -> {
       thread = Thread.currentThread();
       try {
         SingleThreadEventLoop.this.run();
@@ -314,19 +316,5 @@ public abstract class SingleThreadEventLoop extends AbstractExecutorService impl
   @Override
   public boolean awaitTermination(long timeout, TimeUnit unit) {
     return false;
-  }
-
-  enum State {
-    NOT_STARTED(1),
-    STARTED(2),
-    SHUTTING_DOWN(3),
-    SHUTDOWN(4),
-    TERMINATED(5);
-
-    int value;
-
-    State(int value) {
-      this.value = value;
-    }
   }
 }

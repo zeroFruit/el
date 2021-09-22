@@ -3,7 +3,7 @@ package io.el.concurrent;
 import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 
-public interface Promise<V> extends Future<V> {
+public interface Promise<V> extends Future<V>, Runnable {
 
   boolean isSuccess();
 

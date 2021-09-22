@@ -26,8 +26,12 @@ public interface EventLoop extends ExecutorService {
   boolean shutdownGracefully(long timeout, TimeUnit unit);
 
   @Override
-  <T> Promise<T> submit(Callable<T> task);
+  <V> Promise<V> submit(Callable<V> task);
 
   @Override
   Promise<?> submit(Runnable task);
+
+  ScheduledPromise<?> schedule(Runnable command, long delay, TimeUnit unit);
+
+  <V> ScheduledPromise<V> schedule(Callable<V> command, long delay, TimeUnit unit);
 }

@@ -25,35 +25,35 @@ public abstract class AbstractEventLoop implements EventLoop {
   }
 
   @Override
-  public <T> Promise<T> submit(Callable<T> task) {
-    Promise<T> promise = new DefaultPromise<>(this, task);
+  public <V> Promise<V> submit(Callable<V> task) {
+    Promise<V> promise = new DefaultPromise<>(this, task);
     execute(promise);
     return promise;
   }
 
   @Override
-  public <T> Future<T> submit(Runnable task, T result) {
+  public <V> Future<V> submit(Runnable task, V result) {
     throw new UnsupportedOperationException();
   }
 
   @Override
-  public <T> List<Future<T>> invokeAll(Collection<? extends Callable<T>> tasks) {
+  public <V> List<Future<V>> invokeAll(Collection<? extends Callable<V>> tasks) {
     throw new UnsupportedOperationException();
   }
 
   @Override
-  public <T> List<Future<T>> invokeAll(Collection<? extends Callable<T>> tasks, long timeout,
+  public <V> List<Future<V>> invokeAll(Collection<? extends Callable<V>> tasks, long timeout,
       TimeUnit unit) {
     throw new UnsupportedOperationException();
   }
 
   @Override
-  public <T> T invokeAny(Collection<? extends Callable<T>> tasks) {
+  public <V> V invokeAny(Collection<? extends Callable<V>> tasks) {
     throw new UnsupportedOperationException();
   }
 
   @Override
-  public <T> T invokeAny(Collection<? extends Callable<T>> tasks, long timeout, TimeUnit unit) {
+  public <V> V invokeAny(Collection<? extends Callable<V>> tasks, long timeout, TimeUnit unit) {
     throw new UnsupportedOperationException();
   }
 

@@ -45,7 +45,7 @@ public class LongDelayTaskExecuteScheduler extends SingleThreadEventLoop {
         .maxDelay(3000)
         .minDelay(1500)
         .taskDelay(500)
-        .numOfTasks(10)
+        .numOfTasks(100)
         .start();
   }
 }

@@ -45,7 +45,7 @@ public class TaskExecuteScheduler extends SingleThreadEventLoop {
         .maxDelay(500)
         .minDelay(0)
         .taskDelay(500)
-        .numOfTasks(10)
+        .numOfTasks(100)
         .start();
   }
 }

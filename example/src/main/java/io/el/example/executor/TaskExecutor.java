@@ -6,13 +6,8 @@ import io.el.example.AbstractSingleThreadEventLoopExample;
 import io.el.example.SimpleTask;
 import java.util.concurrent.Executor;
 import java.util.concurrent.Executors;
-import java.util.concurrent.RejectedExecutionException;
-import java.util.concurrent.TimeUnit;
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
 
 public class TaskExecutor extends SingleThreadEventLoop {
-  private static final Logger LOGGER = LogManager.getLogger();
 
   public TaskExecutor(Executor executor) {
     super(executor);

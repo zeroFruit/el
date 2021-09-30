@@ -31,7 +31,7 @@ public class TaskExecutor extends SingleThreadEventLoop {
 
     @Override
     protected void testEventLoop(String taskId, long scheduledDelayMillis) {
-      eventLoop().execute(new SimpleTask(taskId, taskDelay()));
+      eventLoop().submit(new SimpleTask(taskId, taskDelay()));
     }
   }
 
@@ -39,8 +39,9 @@ public class TaskExecutor extends SingleThreadEventLoop {
     TaskExecutor scheduler = new TaskExecutor(
         new ThreadPerTaskExecutor(Executors.defaultThreadFactory()));
     new Example(scheduler)
-        .taskDelay(500)
-        .numOfTasks(10)
+        .taskDelay(100)
+        .numOfTasks(100)
+        .intervalBetweenTasks(100)
         .start();
   }
 }

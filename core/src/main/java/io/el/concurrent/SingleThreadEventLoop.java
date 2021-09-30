@@ -4,7 +4,6 @@ import static io.el.internal.ObjectUtil.checkNotNull;
 import static io.el.internal.ObjectUtil.checkPositiveOrZero;
 
 import io.el.internal.DefaultPriorityQueue;
-import io.el.internal.ObjectUtil;
 import io.el.internal.PriorityQueue;
 import io.el.internal.Time;
 import java.util.Comparator;
@@ -104,8 +103,8 @@ public abstract class SingleThreadEventLoop extends AbstractEventLoop {
   }
 
   public <V> ScheduledPromise<V> schedule(Callable<V> command, long delay, TimeUnit unit) {
-    ObjectUtil.checkNotNull(command, "command");
-    ObjectUtil.checkNotNull(unit, "unit");
+    checkNotNull(command, "command");
+    checkNotNull(unit, "unit");
     if (delay < 0L) {
       delay = 0L;
     }

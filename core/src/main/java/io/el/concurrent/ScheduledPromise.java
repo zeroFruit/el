@@ -7,7 +7,7 @@ import java.util.concurrent.Delayed;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 
-public class ScheduledPromise<V> extends DefaultPromise<V> implements Runnable, PriorityQueueNode,
+public class ScheduledPromise<V> extends DefaultPromise<V> implements PriorityQueueNode,
     Delayed {
 
   private final long deadlineNanos;

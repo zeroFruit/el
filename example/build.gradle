@@ -1,5 +1,16 @@
 plugins {
     id 'java'
+    id 'application'
+}
+
+apply plugin : "java"
+
+ext {
+    javaMainClass = "io.el.example.executor.TaskExecutor"
+}
+
+application {
+    mainClassName = javaMainClass
 }
 
 group 'io.el'

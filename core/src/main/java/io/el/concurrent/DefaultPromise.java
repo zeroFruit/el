@@ -26,7 +26,7 @@ public class DefaultPromise<V> implements Promise<V> {
 
   private final EventLoop eventLoop;
   private final Callable<V> task;
-  private volatile Object result;
+  private volatile V result;
   private volatile Throwable cause;
   private List<PromiseListener> listeners = new ArrayList<>();
 

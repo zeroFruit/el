@@ -65,8 +65,7 @@ public abstract class AbstractEventLoop implements EventLoop {
     NOT_STARTED(1),
     STARTED(2),
     SHUTTING_DOWN(3),
-    SHUTDOWN(4),
-    TERMINATED(5);
+    SHUTDOWN(4);
 
     int value;
 

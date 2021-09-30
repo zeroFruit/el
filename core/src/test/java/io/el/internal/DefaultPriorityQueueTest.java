@@ -271,7 +271,7 @@ public class DefaultPriorityQueueTest {
   private static final class TestElement implements PriorityQueueNode {
 
     int value;
-    private int index = PRIORITY_NOT_IN_QUEUE;
+    private int index = INDEX_NOT_IN_QUEUE;
 
     TestElement(int value) {
       this.value = value;

@@ -41,6 +41,11 @@ public class DefaultPromise<V> implements Promise<V> {
     this.task = task;
   }
 
+  protected DefaultPromise() {
+    this.eventLoop = null;
+    this.task = (Callable<V>) Executors.callable(() -> {});
+  }
+
   @Override
   public void run() {
     if (!eventLoop().inEventLoop()) {

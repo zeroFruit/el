@@ -1,4 +1,5 @@
 rootProject.name = 'el'
 include 'core'
 include 'example'
+include 'transport'
 

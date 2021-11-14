@@ -3,13 +3,16 @@ package io.el.connection;
 import io.el.concurrent.EventLoop;
 
 public interface ChannelHandlerContext {
-    Channel channel();
 
-    EventLoop eventLoop();
+  Channel channel();
 
-    ChannelHandlerContext fireChannelRegistered();
+  EventLoop eventLoop();
 
-    ChannelHandlerContext fireChannelRead(Object msg);
+  ChannelHandlerContext fireChannelRegistered();
 
-    ChannelPipeline pipeline();
+  ChannelHandlerContext fireChannelRead(Object msg);
+
+  ChannelPipeline pipeline();
+
+  ChannelHandler handler();
 }

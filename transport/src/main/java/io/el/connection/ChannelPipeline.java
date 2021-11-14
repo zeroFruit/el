@@ -1,11 +1,14 @@
 package io.el.connection;
 
-public interface ChannelPipeline extends ChannelInboundInvoker {
-    ChannelPipeline addLast(ChannelHandler... handler);
+public interface ChannelPipeline extends ChannelInboundInvoker, ChannelOutboundInvoker {
 
-    @Override
-    ChannelPipeline fireChannelRegistered();
+  ChannelPipeline addLast(ChannelHandler... handlers);
 
-    @Override
-    ChannelPipeline fireChannelRead(Object msg);
+  @Override
+  ChannelPipeline fireChannelRegistered();
+
+  @Override
+  ChannelPipeline fireChannelRead(Object msg);
+
+  Channel channel();
 }

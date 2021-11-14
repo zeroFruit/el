@@ -214,6 +214,11 @@ public abstract class SingleThreadEventLoop extends AbstractEventLoop {
     return isShutdown();
   }
 
+  protected final long nextScheduledTaskDeadlineNanos() {
+    ScheduledPromise<?> scheduledTask = peekScheduledTask();
+    return scheduledTask != null ? scheduledTask.deadlineNanos() : -1;
+  }
+
   private void cancelScheduledTasks() {
     scheduledTaskQueue().clear();
   }
@@ -261,6 +266,11 @@ public abstract class SingleThreadEventLoop extends AbstractEventLoop {
         LOGGER.error("An event loop terminated with unexpected exception. Exception: ", t);
       }
     }
+  }
+
+  // TODO: implement me
+  protected boolean runAllTasks(long timeoutNanos) {
+    return true;
   }
 
   private int drainTasks() {

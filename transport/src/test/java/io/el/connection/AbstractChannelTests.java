@@ -6,6 +6,7 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
+import java.net.SocketAddress;
 import org.junit.jupiter.api.Test;
 
 public class AbstractChannelTests {
@@ -29,7 +30,7 @@ public class AbstractChannelTests {
   private static ChannelPromise registerChannel(ChannelEventLoop loop, Channel ch)
       throws Exception {
     DefaultChannelPromise promise = new DefaultChannelPromise(ch);
-    ch.register(loop, promise);
+    ch.internal().register(loop, promise);
     promise.await();
     return promise;
   }
@@ -39,6 +40,53 @@ public class AbstractChannelTests {
     @Override
     public boolean isOpen() {
       return true;
+    }
+
+    @Override
+    public boolean isActive() {
+      return true;
+    }
+
+    @Override
+    protected void doBind(SocketAddress localAddress) throws Exception {
+
+    }
+
+    @Override
+    protected void doBeginRead() throws Exception {
+
+    }
+
+    @Override
+    protected void doWrite(ChannelOutboundBuffer in) throws Exception {
+
+    }
+
+    @Override
+    public ChannelPromise connect(SocketAddress remoteAddress, SocketAddress localAddress,
+        ChannelPromise promise) {
+      return null;
+    }
+
+    @Override
+    public ChannelOutboundInvoker write(Object msg, ChannelPromise promise) {
+      return null;
+    }
+
+    @Override
+    protected AbstractInternal newInternal() {
+      return new AbstractInternal() {
+        @Override
+        public SocketAddress localAddress() {
+          return null;
+        }
+
+        @Override
+        public void connect(SocketAddress remoteAddress, SocketAddress localAddress,
+            ChannelPromise promise) {
+          promise.setFailure(new UnsupportedOperationException());
+        }
+      };
     }
   }
 }

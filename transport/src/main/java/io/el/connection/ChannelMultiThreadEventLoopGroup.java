@@ -3,7 +3,6 @@ package io.el.connection;
 import io.el.concurrent.DefaultEventLoopChooserFactory;
 import io.el.concurrent.EventLoop;
 import io.el.concurrent.MultiThreadEventLoop;
-import io.el.concurrent.Promise;
 import java.util.concurrent.Executor;
 
 public abstract class ChannelMultiThreadEventLoopGroup extends MultiThreadEventLoop
@@ -20,17 +19,12 @@ public abstract class ChannelMultiThreadEventLoopGroup extends MultiThreadEventL
   protected abstract EventLoop newChild(Executor executor, Object... args) throws Exception;
 
   @Override
-  public EventLoop next() {
-    return super.next();
+  public ChannelEventLoop next() {
+    return (ChannelEventLoop) super.next();
   }
 
   @Override
   public ChannelPromise register(Channel channel) {
-    return null;
-  }
-
-  @Override
-  public Promise<?> shutdownGracefully() {
-    return null;
+    return next().register(channel);
   }
 }

@@ -126,11 +126,6 @@ public class NioChannelEventLoop extends ChannelSingleThreadEventLoop {
     }
   }
 
-  @Override
-  public Promise<?> shutdownGracefully() {
-    return null;
-  }
-
   int selectNow() throws IOException {
     return selector.selectNow();
   }
@@ -167,6 +162,7 @@ public class NioChannelEventLoop extends ChannelSingleThreadEventLoop {
   }
 
   private void processSelectedKey(SelectionKey k, AbstractNioChannel ch) {
+    final AbstractNioChannel.NioInternal internal = ch.internal();
     if (!k.isValid()) {
       // TODO: error handling
       return;
@@ -180,13 +176,13 @@ public class NioChannelEventLoop extends ChannelSingleThreadEventLoop {
         ops &= ~SelectionKey.OP_CONNECT;
         k.interestOps(ops);
 
-        ch.finishConnect();
+        internal.finishConnect();
       }
 
       // Process OP_WRITE first as we may be able to write some queued buffers and so free memory.
       if ((readyOps & SelectionKey.OP_WRITE) != 0) {
         // Call forceFlush which will also take care of clear the OP_WRITE once there is nothing left to write
-        ch.forceFlush();
+        // internal.forceFlush();
       }
 
       // Also check for readOps of 0 to workaround possible JDK bug which may otherwise lead

@@ -4,11 +4,17 @@ public interface ChannelPipeline extends ChannelInboundInvoker, ChannelOutboundI
 
   ChannelPipeline addLast(ChannelHandler... handlers);
 
+  ChannelPipeline remove(ChannelHandler handler);
+
+  Channel channel();
+
+  ChannelHandlerContext firstContext();
+
+  ChannelHandlerContext context(ChannelHandler handler);
+
   @Override
   ChannelPipeline fireChannelRegistered();
 
   @Override
   ChannelPipeline fireChannelRead(Object msg);
-
-  Channel channel();
 }

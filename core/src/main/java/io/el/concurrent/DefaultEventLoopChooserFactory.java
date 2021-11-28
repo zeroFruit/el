@@ -10,7 +10,7 @@ public class DefaultEventLoopChooserFactory implements EventLoopChooserFactory {
 
     @Override
     public EventLoopChooser newChooser(List<EventLoop> loops) {
-        return null;
+        return new GenericEventLoopChooser(loops);
     }
 
     private static final class GenericEventLoopChooser implements EventLoopChooser {

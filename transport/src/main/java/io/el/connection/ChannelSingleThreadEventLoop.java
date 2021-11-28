@@ -4,6 +4,8 @@ import io.el.concurrent.EventLoop;
 import io.el.concurrent.SingleThreadEventLoop;
 import java.util.Queue;
 import java.util.concurrent.Executor;
+import java.util.concurrent.LinkedBlockingDeque;
+import java.util.concurrent.LinkedBlockingQueue;
 
 public abstract class ChannelSingleThreadEventLoop extends SingleThreadEventLoop
     implements ChannelEventLoop {
@@ -11,6 +13,13 @@ public abstract class ChannelSingleThreadEventLoop extends SingleThreadEventLoop
   protected static final int DEFAULT_MAX_PENDING_TASKS = 16;
   ChannelEventLoopGroup parent;
   private final Queue<Runnable> tailTasks;
+
+  public ChannelSingleThreadEventLoop(ChannelEventLoopGroup parent,
+      Executor executor) {
+    super(executor);
+    this.parent = parent;
+    this.tailTasks = newTaskQueue(DEFAULT_MAX_PENDING_TASKS);
+  }
 
   public ChannelSingleThreadEventLoop(ChannelEventLoopGroup parent,
       Executor executor, Queue<Runnable> tailTaskQueue) {
@@ -25,18 +34,22 @@ public abstract class ChannelSingleThreadEventLoop extends SingleThreadEventLoop
   }
 
   @Override
-  public EventLoop next() {
+  public ChannelEventLoop next() {
     return this;
   }
 
   @Override
   public ChannelPromise register(Channel channel) {
     ChannelPromise promise = new DefaultChannelPromise(channel, this);
-    channel.register(this, promise);
+    channel.internal().register(this, promise);
     return promise;
   }
 
   protected boolean hasTasks() {
     return !tailTasks.isEmpty();
+  }
+
+  protected Queue<Runnable> newTaskQueue(int maxPendingTasks) {
+    return new LinkedBlockingQueue<>(maxPendingTasks);
   }
 }

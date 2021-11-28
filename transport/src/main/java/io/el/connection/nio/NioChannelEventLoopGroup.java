@@ -11,7 +11,11 @@ import java.util.concurrent.Executor;
 public class NioChannelEventLoopGroup extends ChannelMultiThreadEventLoopGroup {
 
   public NioChannelEventLoopGroup() {
-    super(0, null, SelectorProvider.provider(),
+    this(0);
+  }
+
+  public NioChannelEventLoopGroup(int nThreads) {
+    super(nThreads, null, SelectorProvider.provider(),
         DefaultSelectStrategyFactory.INSTANCE);
   }
 

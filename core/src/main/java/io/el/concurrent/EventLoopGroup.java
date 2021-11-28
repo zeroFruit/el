@@ -6,8 +6,6 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.TimeUnit;
 
 public interface EventLoopGroup extends ExecutorService, Iterable<EventLoop> {
-    Promise<?> shutdownGracefully();
-
     EventLoop next();
 
     @Override

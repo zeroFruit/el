@@ -2,6 +2,7 @@ package io.el.connection;
 
 import io.el.concurrent.EventLoop;
 import io.el.concurrent.EventLoopGroup;
+import io.el.internal.ObjectUtil;
 import java.net.SocketAddress;
 import java.util.concurrent.RejectedExecutionException;
 
@@ -51,6 +52,25 @@ public class DefaultChannelPipeline implements ChannelPipeline {
     return this;
   }
 
+  @Override
+  public ChannelPipeline remove(ChannelHandler handler) {
+    AbstractChannelHandlerContext ctx = (AbstractChannelHandlerContext) context(handler);
+    assert ctx != head && ctx != tail;
+
+    synchronized (this) {
+      atomicRemoveFromHandlerList(ctx);
+      // FIXME: when add handlerRemoved event-handler, then fire handler-removed event
+    }
+    return this;
+  }
+
+  private synchronized void atomicRemoveFromHandlerList(AbstractChannelHandlerContext ctx) {
+    AbstractChannelHandlerContext prev = ctx.prev;
+    AbstractChannelHandlerContext next = ctx.next;
+    prev.next = next;
+    next.prev = prev;
+  }
+
   public final ChannelPipeline addLast(EventLoopGroup group, String name, ChannelHandler handler) {
     final AbstractChannelHandlerContext newCtx;
     synchronized (this) {
@@ -93,12 +113,53 @@ public class DefaultChannelPipeline implements ChannelPipeline {
   }
 
   @Override
+  public ChannelHandlerContext firstContext() {
+    AbstractChannelHandlerContext first = head.next;
+    if (first == tail) {
+      return null;
+    }
+    return head.next;
+  }
+
+  @Override
+  public ChannelHandlerContext context(ChannelHandler handler) {
+    ObjectUtil.checkNotNull(handler, "handler");
+
+    AbstractChannelHandlerContext ctx = head.next;
+    while (true) {
+      if (ctx == null) {
+        return null;
+      }
+      if (ctx.handler() == handler) {
+        return ctx;
+      }
+      ctx = ctx.next;
+    }
+  }
+
+  @Override
   public Channel channel() {
     return channel;
   }
 
   @Override
   public ChannelPromise bind(SocketAddress localAddress, ChannelPromise promise) {
+    return null;
+  }
+
+  @Override
+  public ChannelPromise connect(SocketAddress remoteAddress, SocketAddress localAddress,
+      ChannelPromise promise) {
+    return null;
+  }
+
+  @Override
+  public ChannelOutboundInvoker read() {
+    return null;
+  }
+
+  @Override
+  public ChannelOutboundInvoker write(Object msg, ChannelPromise promise) {
     return null;
   }
 
@@ -122,11 +183,6 @@ public class DefaultChannelPipeline implements ChannelPipeline {
       return null;
     }
     return group.next();
-  }
-
-  // FIXME:
-  private String filterName(String name, ChannelHandler handler) {
-    return name;
   }
 
   private void callHandlerCallbackLater(AbstractChannelHandlerContext ctx) {
@@ -212,6 +268,27 @@ public class DefaultChannelPipeline implements ChannelPipeline {
     public ChannelHandler handler() {
       return this;
     }
+
+    @Override
+    public ChannelPromise bind(SocketAddress localAddress, ChannelPromise promise) {
+      return null;
+    }
+
+    @Override
+    public ChannelPromise connect(SocketAddress remoteAddress, SocketAddress localAddress,
+        ChannelPromise promise) {
+      return null;
+    }
+
+    @Override
+    public ChannelHandlerContext read() {
+      return null;
+    }
+
+    @Override
+    public ChannelOutboundInvoker write(Object msg, ChannelPromise promise) {
+      return null;
+    }
   }
 
   final class HeadContext extends AbstractChannelHandlerContext
@@ -267,6 +344,27 @@ public class DefaultChannelPipeline implements ChannelPipeline {
     @Override
     public ChannelHandler handler() {
       return this;
+    }
+
+    @Override
+    public ChannelPromise bind(SocketAddress localAddress, ChannelPromise promise) {
+      return null;
+    }
+
+    @Override
+    public ChannelPromise connect(SocketAddress remoteAddress, SocketAddress localAddress,
+        ChannelPromise promise) {
+      return null;
+    }
+
+    @Override
+    public ChannelHandlerContext read() {
+      return null;
+    }
+
+    @Override
+    public ChannelOutboundInvoker write(Object msg, ChannelPromise promise) {
+      return null;
     }
   }
 

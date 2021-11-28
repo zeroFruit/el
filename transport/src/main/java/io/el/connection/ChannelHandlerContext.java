@@ -2,7 +2,7 @@ package io.el.connection;
 
 import io.el.concurrent.EventLoop;
 
-public interface ChannelHandlerContext {
+public interface ChannelHandlerContext extends ChannelInboundInvoker, ChannelOutboundInvoker {
 
   Channel channel();
 
@@ -15,4 +15,7 @@ public interface ChannelHandlerContext {
   ChannelPipeline pipeline();
 
   ChannelHandler handler();
+
+  @Override
+  ChannelHandlerContext read();
 }

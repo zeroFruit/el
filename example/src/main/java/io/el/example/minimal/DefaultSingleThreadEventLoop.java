@@ -1,9 +1,13 @@
-package io.el.concurrent;
+package io.el.example.minimal;
 
+import io.el.concurrent.SingleThreadEventLoop;
 import java.util.concurrent.Executor;
 
-public class DefaultSingleThreadEventLoop extends SingleThreadEventLoop{
-
+/**
+ * We need to create a new EventLoop class.
+ * This event loop does not do any IO operation
+ */
+public class DefaultSingleThreadEventLoop extends SingleThreadEventLoop {
   public DefaultSingleThreadEventLoop(Executor executor) {
     super(executor);
   }

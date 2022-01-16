@@ -2,9 +2,11 @@ package io.el.connection;
 
 import io.el.concurrent.EventLoop;
 import io.el.concurrent.SingleThreadEventLoop;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.Iterator;
 import java.util.Queue;
 import java.util.concurrent.Executor;
-import java.util.concurrent.LinkedBlockingDeque;
 import java.util.concurrent.LinkedBlockingQueue;
 
 public abstract class ChannelSingleThreadEventLoop extends SingleThreadEventLoop
@@ -13,6 +15,7 @@ public abstract class ChannelSingleThreadEventLoop extends SingleThreadEventLoop
   protected static final int DEFAULT_MAX_PENDING_TASKS = 16;
   ChannelEventLoopGroup parent;
   private final Queue<Runnable> tailTasks;
+  private final Collection<EventLoop> selfCollection = Collections.singleton(this);
 
   public ChannelSingleThreadEventLoop(ChannelEventLoopGroup parent,
       Executor executor) {
@@ -26,6 +29,11 @@ public abstract class ChannelSingleThreadEventLoop extends SingleThreadEventLoop
     super(executor);
     this.parent = parent;
     this.tailTasks = tailTaskQueue;
+  }
+
+  @Override
+  public Iterator<EventLoop> iterator() {
+    return selfCollection.iterator();
   }
 
   @Override
@@ -46,7 +54,7 @@ public abstract class ChannelSingleThreadEventLoop extends SingleThreadEventLoop
   }
 
   protected boolean hasTasks() {
-    return !tailTasks.isEmpty();
+    return super.hasTasks() || !tailTasks.isEmpty();
   }
 
   protected Queue<Runnable> newTaskQueue(int maxPendingTasks) {

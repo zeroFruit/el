@@ -46,7 +46,8 @@ public abstract class SingleThreadEventLoop extends AbstractEventLoop {
 
   @Override
   public boolean inEventLoop() {
-    return Thread.currentThread() == this.thread;
+    Thread aThread = Thread.currentThread();
+    return aThread == this.thread;
   }
 
   @Override
@@ -223,6 +224,17 @@ public abstract class SingleThreadEventLoop extends AbstractEventLoop {
     scheduledTaskQueue().clear();
   }
 
+  protected boolean hasTasks() {
+    assert inEventLoop();
+    return !taskQueue.isEmpty();
+  }
+
+  protected static Runnable pollTaskFrom(Queue<Runnable> taskQueue) {
+    for (;;) {
+      return taskQueue.poll();
+    }
+  }
+
   protected Runnable takeTask() {
     if (!inEventLoop()) {
       return null;
@@ -268,9 +280,57 @@ public abstract class SingleThreadEventLoop extends AbstractEventLoop {
     }
   }
 
+  /**
+   *     protected boolean runAllTasks() {
+   *         assert inEventLoop();
+   *         boolean fetchedAll;
+   *         boolean ranAtLeastOne = false;
+   *
+   *         do {
+   *             fetchedAll = fetchFromScheduledTaskQueue();
+   *             if (runAllTasksFrom(taskQueue)) {
+   *                 ranAtLeastOne = true;
+   *             }
+   *         } while (!fetchedAll); // keep on processing until we fetched all scheduled tasks.
+   *
+   *         if (ranAtLeastOne) {
+   *             lastExecutionTime = ScheduledFutureTask.nanoTime();
+   *         }
+   *         afterRunningAllTasks();
+   *         return ranAtLeastOne;
+   *     }
+   *
+   * */
+
   // TODO: implement me
   protected boolean runAllTasks(long timeoutNanos) {
-    return true;
+    final long deadline = timeoutNanos > 0 ? ScheduledPromise.nanoTime() + timeoutNanos : 0;
+    long tasksRun = 0;
+    long lastExecutionTime;
+    while (true) {
+      Runnable task = takeTask();
+      if (task == null) {
+        break;
+      }
+      try {
+        task.run();
+      } catch (Throwable t) {
+        LOGGER.warn("A task raised an exception. Task: {}", task, t);
+      }
+
+      tasksRun += 1;
+
+      // Check timeout every 64 tasks because nanoTime() is relatively expensive.
+      // XXX: Hard-coded value - will make it configurable if it is really a problem.
+      if ((tasksRun & 0x3F) == 0) {
+        lastExecutionTime = ScheduledPromise.nanoTime();
+        if (lastExecutionTime >= deadline) {
+          break;
+        }
+      }
+    }
+
+    return tasksRun != 0;
   }
 
   private int drainTasks() {

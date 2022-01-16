@@ -7,7 +7,7 @@ public class ChannelInboundHandlerAdapter extends ChannelHandlerAdapter implemen
     ctx.fireChannelRegistered();
   }
 
-  public void channelRead(ChannelHandlerContext ctx, Object msg) {
+  public void channelRead(ChannelHandlerContext ctx, Object msg) throws Exception {
     ctx.fireChannelRead(msg);
   }
 }

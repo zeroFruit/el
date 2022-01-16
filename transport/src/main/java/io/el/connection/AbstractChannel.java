@@ -1,5 +1,7 @@
 package io.el.connection;
 
+import static io.el.internal.ObjectUtil.checkNotNull;
+
 import java.net.SocketAddress;
 import java.nio.channels.ClosedChannelException;
 import java.util.concurrent.RejectedExecutionException;
@@ -15,8 +17,8 @@ public abstract class AbstractChannel implements Channel {
   private volatile SocketAddress remoteAddress;
 
   protected AbstractChannel() {
-    pipeline = newChannelPipeline();
     internal = newInternal();
+    pipeline = newChannelPipeline();
   }
 
   protected DefaultChannelPipeline newChannelPipeline() {
@@ -54,7 +56,8 @@ public abstract class AbstractChannel implements Channel {
       return localAddress;
     }
     try {
-      this.localAddress = localAddress = internal().localAddress();
+      localAddress = internal().localAddress();
+      this.localAddress = localAddress;
     } catch (Throwable t) {
       // TODO: error-handling
     }
@@ -74,6 +77,10 @@ public abstract class AbstractChannel implements Channel {
     }
     return remoteAddress;
   }
+
+  protected abstract SocketAddress getLocalAddress();
+
+  protected abstract SocketAddress getRemoteAddress();
 
   /**
    * Is called after the {@link Channel} is registered with its {@link ChannelEventLoop} as part of the register process.
@@ -100,6 +107,11 @@ public abstract class AbstractChannel implements Channel {
     }
     promise.setFailure(new ClosedChannelException());
     return false;
+  }
+
+  @Override
+  public ChannelPromise bind(SocketAddress localAddress) {
+    return pipeline.bind(localAddress);
   }
 
   @Override
@@ -130,6 +142,7 @@ public abstract class AbstractChannel implements Channel {
 
     @Override
     public void register(ChannelEventLoop channelEventLoop, ChannelPromise promise) {
+      checkNotNull(channelEventLoop, "channelEventLoop");
       if (isRegistered()) {
         promise.setFailure(new IllegalStateException("registered to an event loop already"));
         return;
@@ -149,7 +162,7 @@ public abstract class AbstractChannel implements Channel {
         });
       } catch (Throwable t) {
         // TODO: error-handling
-        t.printStackTrace();
+        promise.setFailure(t);
       }
     }
 
@@ -225,12 +238,12 @@ public abstract class AbstractChannel implements Channel {
 
     @Override
     public SocketAddress remoteAddress() {
-      return AbstractChannel.this.remoteAddress();
+      return AbstractChannel.this.getRemoteAddress();
     }
 
     @Override
     public SocketAddress localAddress() {
-      return AbstractChannel.this.localAddress();
+      return AbstractChannel.this.getLocalAddress();
     }
   }
 }

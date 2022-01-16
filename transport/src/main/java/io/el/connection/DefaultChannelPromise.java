@@ -1,6 +1,7 @@
 package io.el.connection;
 
 import io.el.concurrent.DefaultPromise;
+import io.el.concurrent.EventLoop;
 import io.el.concurrent.Promise;
 import io.el.concurrent.PromiseListener;
 
@@ -12,7 +13,7 @@ public class DefaultChannelPromise extends DefaultPromise<Void> implements Chann
     this.channel = channel;
   }
 
-  public DefaultChannelPromise(Channel channel, ChannelEventLoop eventLoop) {
+  public DefaultChannelPromise(Channel channel, EventLoop eventLoop) {
     super(eventLoop, () -> {
     });
     this.channel = channel;

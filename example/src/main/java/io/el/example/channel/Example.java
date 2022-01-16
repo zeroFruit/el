@@ -3,11 +3,11 @@ package io.el.example.channel;
 import io.el.connection.Channel;
 import io.el.connection.ChannelInitializer;
 import io.el.connection.ChannelEventLoopGroup;
-import io.el.connection.ServerBootstrap;
+import io.el.bootstrap.ServerBootstrap;
 import io.el.connection.nio.NioChannelEventLoopGroup;
 
 import io.el.connection.socket.nio.NioServerSocketChannel;
-import java.nio.channels.SocketChannel;
+import java.util.concurrent.TimeUnit;
 
 public class Example {
     private int port;
@@ -24,17 +24,18 @@ public class Example {
             b
                     .group(parent, child)
                     .channel(NioServerSocketChannel.class)
-                    .childHandler(new ChannelInitializer<SocketChannel>() {
-                        @Override
-                        protected void initChannel(Channel ch) throws Exception {
+                    .childHandler(new ChannelInitializer<Channel>() {
 
-                        }
+                      @Override
+                      protected void initChannel(Channel ch) throws Exception {
+
+                      }
                     });
 
             b.bind(port).await();
         } finally {
-            parent.shutdownGracefully();
-            child.shutdownGracefully();
+            parent.shutdownGracefully(1, TimeUnit.SECONDS);
+            child.shutdownGracefully(1, TimeUnit.SECONDS);
         }
     }
 }

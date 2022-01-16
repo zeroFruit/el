@@ -74,13 +74,23 @@ public class LocalChannel extends AbstractChannel {
   }
 
   @Override
-  public SocketAddress localAddress() {
-    return null;
+  public LocalAddress localAddress() {
+    return (LocalAddress) super.localAddress();
   }
 
   @Override
-  public SocketAddress remoteAddress() {
-    return null;
+  public LocalAddress remoteAddress() {
+    return (LocalAddress) super.remoteAddress();
+  }
+
+  @Override
+  protected SocketAddress getLocalAddress() {
+    return localAddress;
+  }
+
+  @Override
+  protected SocketAddress getRemoteAddress() {
+    return remoteAddress;
   }
 
   @Override

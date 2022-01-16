@@ -27,6 +27,16 @@ public class LocalServerChannel extends AbstractServerChannel {
   }
 
   @Override
+  protected LocalAddress getLocalAddress() {
+    return (LocalAddress) super.localAddress();
+  }
+
+  @Override
+  protected LocalAddress getRemoteAddress() {
+    return (LocalAddress) super.remoteAddress();
+  }
+
+  @Override
   protected void doBind(SocketAddress localAddress) {
 
   }

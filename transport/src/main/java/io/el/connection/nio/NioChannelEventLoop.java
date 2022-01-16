@@ -1,18 +1,22 @@
 package io.el.connection.nio;
 
-import io.el.concurrent.Promise;
+import static io.el.internal.ObjectUtil.checkNotNull;
+
 import io.el.connection.ChannelEventLoopTaskQueueFactory;
 import io.el.connection.ChannelSingleThreadEventLoop;
 import io.el.connection.SelectStrategy;
 import io.el.connection.util.IntSupplier;
 import java.io.IOException;
 import java.nio.channels.CancelledKeyException;
+import java.nio.channels.SelectableChannel;
 import java.nio.channels.SelectionKey;
 import java.nio.channels.Selector;
 import java.nio.channels.spi.SelectorProvider;
 import java.util.Iterator;
+import java.util.Queue;
 import java.util.Set;
 import java.util.concurrent.Executor;
+import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.atomic.AtomicLong;
 
 public class NioChannelEventLoop extends ChannelSingleThreadEventLoop {
@@ -40,10 +44,17 @@ public class NioChannelEventLoop extends ChannelSingleThreadEventLoop {
   public NioChannelEventLoop(NioChannelEventLoopGroup parent, Executor executor,
       SelectorProvider selectorProvider, SelectStrategy strategy,
       ChannelEventLoopTaskQueueFactory tailTaskQueueFactory) {
-    super(parent, executor, tailTaskQueueFactory.newTaskQueue(DEFAULT_MAX_PENDING_TASKS));
+    super(parent, executor, newTaskQueue(tailTaskQueueFactory));
     this.selectStrategy = strategy;
     this.selectorProvider = selectorProvider;
     this.selector = openSelector(this.selectorProvider);
+  }
+
+  private static Queue<Runnable> newTaskQueue(ChannelEventLoopTaskQueueFactory factory) {
+    if (factory == null) {
+      return new LinkedBlockingQueue<>(DEFAULT_MAX_PENDING_TASKS);
+    }
+    return factory.newTaskQueue(DEFAULT_MAX_PENDING_TASKS);
   }
 
   private Selector openSelector(SelectorProvider provider) {
@@ -55,6 +66,53 @@ public class NioChannelEventLoop extends ChannelSingleThreadEventLoop {
       throw new IllegalStateException("failed to open a new selector", e);
     }
     return unwrappedSelector;
+  }
+
+  /**
+   * Registers an arbitrary {@link SelectableChannel}, not necessarily created by Netty, to the {@link Selector}
+   * of this event loop.  Once the specified {@link SelectableChannel} is registered, the specified {@code task} will
+   * be executed by this event loop when the {@link SelectableChannel} is ready.
+   */
+  public void register(final SelectableChannel ch, final int interestOps, final NioTask<?> task) {
+    checkNotNull(ch, "ch");
+    if (interestOps == 0) {
+      throw new IllegalArgumentException("interestOps must be non-zero.");
+    }
+    if ((interestOps & ~ch.validOps()) != 0) {
+      throw new IllegalArgumentException(
+          "invalid interestOps: " + interestOps + "(validOps: " + ch.validOps() + ')');
+    }
+    checkNotNull(task, "task");
+
+    if (isShutdown()) {
+      throw new IllegalStateException("event loop shut down");
+    }
+
+    if (inEventLoop()) {
+      doRegister(ch, interestOps, task);
+      return;
+    }
+    try {
+      // Offload to the EventLoop as otherwise java.nio.channels.spi.AbstractSelectableChannel.register
+      // may block for a long time while trying to obtain an internal lock that may be hold while selecting.
+      submit(new Runnable() {
+        @Override
+        public void run() {
+          doRegister(ch, interestOps, task);
+        }
+      }).await();
+    } catch (InterruptedException ignore) {
+      // Even if interrupted we did schedule it so just mark the Thread as interrupted.
+      Thread.currentThread().interrupt();
+    }
+  }
+
+  private void doRegister(SelectableChannel ch, int interestOps, NioTask<?> task) {
+    try {
+      ch.register(selector, interestOps, task);
+    } catch (Exception e) {
+      throw new IllegalStateException("failed to register a channel", e);
+    }
   }
 
   /**
@@ -106,6 +164,7 @@ public class NioChannelEventLoop extends ChannelSingleThreadEventLoop {
 
         selectCnt += 1;
         needsToSelectAgain = false;
+        final int ioRatio = this.ioRatio;
         boolean ranTasks;
         if (strategy > 0) {
           final long ioStartTime = System.nanoTime();
@@ -120,6 +179,7 @@ public class NioChannelEventLoop extends ChannelSingleThreadEventLoop {
         }
       } catch (Exception e) {
         // TODO: error-handling
+        e.printStackTrace();
       } finally {
         // TODO: termination
       }

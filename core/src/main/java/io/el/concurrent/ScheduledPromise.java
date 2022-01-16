@@ -10,6 +10,8 @@ import java.util.concurrent.TimeUnit;
 public class ScheduledPromise<V> extends DefaultPromise<V> implements PriorityQueueNode,
     Delayed {
 
+  private static final long START_TIME = System.nanoTime();
+
   private final long deadlineNanos;
   private int queueIndex = INDEX_NOT_IN_QUEUE;
   private long id;
@@ -23,6 +25,10 @@ public class ScheduledPromise<V> extends DefaultPromise<V> implements PriorityQu
   public ScheduledPromise(EventLoop eventLoop, Callable<V> task, long deadlineNanos) {
     super(eventLoop, task);
     this.deadlineNanos = deadlineNanos;
+  }
+
+  static long nanoTime() {
+    return System.nanoTime() - START_TIME;
   }
 
   static long deadlineNanos(long delay) {

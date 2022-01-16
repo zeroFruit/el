@@ -20,4 +20,6 @@ public interface EventLoopGroup extends ExecutorService, Iterable<EventLoop> {
     ScheduledPromise<?> schedule(Runnable command, long delay, TimeUnit unit);
 
     <V> ScheduledPromise<V> schedule(Callable<V> command, long delay, TimeUnit unit);
+
+    boolean shutdownGracefully(long timeout, TimeUnit unit);
 }

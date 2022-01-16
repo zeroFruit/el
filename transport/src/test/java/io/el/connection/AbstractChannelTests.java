@@ -48,6 +48,16 @@ public class AbstractChannelTests {
     }
 
     @Override
+    protected SocketAddress getLocalAddress() {
+      return null;
+    }
+
+    @Override
+    protected SocketAddress getRemoteAddress() {
+      return null;
+    }
+
+    @Override
     protected void doBind(SocketAddress localAddress) throws Exception {
 
     }
@@ -60,17 +70,6 @@ public class AbstractChannelTests {
     @Override
     protected void doWrite(ChannelOutboundBuffer in) throws Exception {
 
-    }
-
-    @Override
-    public ChannelPromise connect(SocketAddress remoteAddress, SocketAddress localAddress,
-        ChannelPromise promise) {
-      return null;
-    }
-
-    @Override
-    public ChannelOutboundInvoker write(Object msg, ChannelPromise promise) {
-      return null;
     }
 
     @Override

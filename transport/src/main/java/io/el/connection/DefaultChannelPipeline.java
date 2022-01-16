@@ -2,6 +2,7 @@ package io.el.connection;
 
 import io.el.concurrent.EventLoop;
 import io.el.concurrent.EventLoopGroup;
+import io.el.connection.Channel.Internal;
 import io.el.internal.ObjectUtil;
 import java.net.SocketAddress;
 import java.util.concurrent.RejectedExecutionException;
@@ -143,8 +144,13 @@ public class DefaultChannelPipeline implements ChannelPipeline {
   }
 
   @Override
+  public ChannelPromise bind(SocketAddress localAddress) {
+    return tail.bind(localAddress);
+  }
+
+  @Override
   public ChannelPromise bind(SocketAddress localAddress, ChannelPromise promise) {
-    return null;
+    return tail.bind(localAddress, promise);
   }
 
   @Override
@@ -268,37 +274,16 @@ public class DefaultChannelPipeline implements ChannelPipeline {
     public ChannelHandler handler() {
       return this;
     }
-
-    @Override
-    public ChannelPromise bind(SocketAddress localAddress, ChannelPromise promise) {
-      return null;
-    }
-
-    @Override
-    public ChannelPromise connect(SocketAddress remoteAddress, SocketAddress localAddress,
-        ChannelPromise promise) {
-      return null;
-    }
-
-    @Override
-    public ChannelHandlerContext read() {
-      return null;
-    }
-
-    @Override
-    public ChannelOutboundInvoker write(Object msg, ChannelPromise promise) {
-      return null;
-    }
   }
 
   final class HeadContext extends AbstractChannelHandlerContext
       implements ChannelOutboundHandler, ChannelInboundHandler {
 
-    private final Channel channel;
+    private final Internal internal;
 
     HeadContext(DefaultChannelPipeline pipeline) {
       super(pipeline, null, HEAD_NAME, HeadContext.class);
-      this.channel = pipeline.channel();
+      this.internal = pipeline.channel().internal();
       setAddComplete();
     }
 
@@ -321,13 +306,13 @@ public class DefaultChannelPipeline implements ChannelPipeline {
     @Override
     public void bind(ChannelHandlerContext ctx, SocketAddress localAddress, ChannelPromise promise)
         throws Exception {
-      channel.bind(localAddress, promise);
+      internal.bind(localAddress, promise);
     }
 
     @Override
     public void connect(ChannelHandlerContext ctx, SocketAddress remoteAddress,
         SocketAddress localAddress, ChannelPromise promise) throws Exception {
-      // TODO:
+      internal.connect(remoteAddress, localAddress, promise);
     }
 
     @Override
@@ -344,27 +329,6 @@ public class DefaultChannelPipeline implements ChannelPipeline {
     @Override
     public ChannelHandler handler() {
       return this;
-    }
-
-    @Override
-    public ChannelPromise bind(SocketAddress localAddress, ChannelPromise promise) {
-      return null;
-    }
-
-    @Override
-    public ChannelPromise connect(SocketAddress remoteAddress, SocketAddress localAddress,
-        ChannelPromise promise) {
-      return null;
-    }
-
-    @Override
-    public ChannelHandlerContext read() {
-      return null;
-    }
-
-    @Override
-    public ChannelOutboundInvoker write(Object msg, ChannelPromise promise) {
-      return null;
     }
   }
 

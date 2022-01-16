@@ -82,4 +82,14 @@ public class NioServerSocketChannel extends AbstractNioMessageChannel implements
   public InetSocketAddress remoteAddress() {
     return (InetSocketAddress) super.remoteAddress();
   }
+
+  @Override
+  protected SocketAddress getLocalAddress() {
+    return javaChannel().socket().getLocalSocketAddress();
+  }
+
+  @Override
+  protected SocketAddress getRemoteAddress() {
+    return null;
+  }
 }

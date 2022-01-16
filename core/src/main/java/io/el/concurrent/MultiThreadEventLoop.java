@@ -4,6 +4,8 @@ import java.util.Arrays;
 import java.util.Iterator;
 import java.util.List;
 import java.util.concurrent.Executor;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ThreadFactory;
 import java.util.concurrent.TimeUnit;
 
 public abstract class MultiThreadEventLoop extends AbstractEventLoopGroup {
@@ -15,8 +17,10 @@ public abstract class MultiThreadEventLoop extends AbstractEventLoopGroup {
     protected MultiThreadEventLoop(
             int nThreads, Executor executor,
             EventLoopChooserFactory chooserFactory, Object... args) {
+        if (executor == null) {
+            executor = new ThreadPerTaskExecutor(newDefaultThreadFactory());
+        }
         children = Arrays.asList(new EventLoop[nThreads]);
-
         for (int i = 0; i < nThreads; i += 1) {
             boolean success = false;
             try {
@@ -35,6 +39,10 @@ public abstract class MultiThreadEventLoop extends AbstractEventLoopGroup {
     }
 
     protected abstract EventLoop newChild(Executor executor, Object... args) throws Exception;
+
+    protected ThreadFactory newDefaultThreadFactory() {
+        return Executors.defaultThreadFactory();
+    }
 
     @Override
     public EventLoop next() {
@@ -74,6 +82,12 @@ public abstract class MultiThreadEventLoop extends AbstractEventLoopGroup {
 
     @Override
     public boolean awaitTermination(long timeout, TimeUnit unit) throws InterruptedException {
+        // TODO:
+        return false;
+    }
+
+    @Override
+    public boolean shutdownGracefully(long timeout, TimeUnit unit) {
         // TODO:
         return false;
     }

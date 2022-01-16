@@ -27,6 +27,7 @@ public abstract class AbstractNioChannel extends AbstractChannel {
   private SocketAddress requestedRemoteAddress;
 
   protected AbstractNioChannel(SelectableChannel ch, int readInterestOp) {
+    super();
     this.ch = ch;
     this.readInterestOp = readInterestOp;
     try {

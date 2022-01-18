@@ -1,5 +1,5 @@
 rootProject.name = 'el'
 include 'core'
 include 'example'
-include 'minimal-example'
+include 'transport'
 

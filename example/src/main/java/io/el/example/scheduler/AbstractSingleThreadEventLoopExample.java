@@ -1,4 +1,4 @@
-package io.el.example;
+package io.el.example.scheduler;
 
 import io.el.concurrent.SingleThreadEventLoop;
 import java.util.Date;

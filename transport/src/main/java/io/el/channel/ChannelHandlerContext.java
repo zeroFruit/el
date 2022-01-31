@@ -6,6 +6,8 @@ public interface ChannelHandlerContext extends ChannelInboundInvoker, ChannelOut
   Channel channel();
   EventLoop eventLoop();
   ChannelHandlerContext fireChannelRegistered();
+  ChannelHandlerContext fireExceptionCaught(Throwable t);
   ChannelPipeline pipeline();
   ChannelHandler handler();
+  String name();
 }

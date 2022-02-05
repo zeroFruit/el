@@ -1,6 +1,5 @@
 package io.el.channel;
 
-import static io.el.channel.ChannelHandlerFlag.FLAG_INBOUND;
 import static io.el.channel.ChannelHandlerFlag.FLAG_OUTBOUND;
 import static io.el.channel.ChannelHandlerFlag.flag;
 
@@ -10,7 +9,6 @@ import io.el.internal.ObjectUtil;
 abstract public class AbstractChannelHandlerContext implements ChannelHandlerContext {
   volatile AbstractChannelHandlerContext next;
   volatile AbstractChannelHandlerContext prev;
-  private volatile HandlerState handlerState = HandlerState.INIT;
 
   private final ChannelPipeline pipeline;
   private final String name;
@@ -79,21 +77,11 @@ abstract public class AbstractChannelHandlerContext implements ChannelHandlerCon
   }
 
   private void invokeChannelRegistered() {
-    if (!isInvoked()) {
-      fireChannelRegistered();
-      return;
-    }
     try {
       ((ChannelInboundHandler) handler()).channelRegistered(this);
     } catch (Throwable t) {
       invokeExceptionCaught(t);
     }
-  }
-
-  private boolean isInvoked() {
-    // Store in local variable to reduce volatile reads.
-    HandlerState handlerState = this.handlerState;
-    return handlerState.equals(HandlerState.ADD_COMPLETE) || handlerState.equals(HandlerState.ADD_PENDING);
   }
 
   @Override
@@ -103,10 +91,6 @@ abstract public class AbstractChannelHandlerContext implements ChannelHandlerCon
   }
 
   private void invokeExceptionCaught(Throwable t) {
-    if (!isInvoked()) {
-      fireExceptionCaught(t);
-      return;
-    }
     try {
       ((ChannelInboundHandler) handler()).exceptionCaught(this, t);
     } catch (Throwable err) {
@@ -121,31 +105,5 @@ abstract public class AbstractChannelHandlerContext implements ChannelHandlerCon
       ctx = ctx.next;
     } while (skipContext(ctx, currentEventLoop, executionFlag, FLAG_OUTBOUND));
     return ctx;
-  }
-
-  private AbstractChannelHandlerContext findContextOutbound() {
-    AbstractChannelHandlerContext ctx = this;
-    EventLoop currentEventLoop = eventLoop();
-    do {
-      ctx = ctx.next;
-    } while (skipContext(ctx, currentEventLoop, executionFlag, FLAG_INBOUND));
-    return ctx;
-  }
-
-  private enum HandlerState {
-    INIT(0),
-    ADD_PENDING(1),
-    ADD_COMPLETE(2),
-    REMOVE_COMPLETE(3);
-
-    private int value;
-
-    HandlerState(int value) {
-      this.value = value;
-    }
-
-    public boolean equals(HandlerState state) {
-      return value == state.value;
-    }
   }
 }

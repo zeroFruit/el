@@ -18,4 +18,11 @@ public final class ObjectUtil {
     }
     return l;
   }
+
+  public static long checkPositive(long l, String name) {
+    if (l <= 0) {
+      throw new IllegalArgumentException(name + ": " + l + " (expected: > 0)");
+    }
+    return l;
+  }
 }

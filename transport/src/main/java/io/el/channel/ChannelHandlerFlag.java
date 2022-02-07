@@ -1,5 +1,8 @@
 package io.el.channel;
 
+/**
+ * {@link ChannelHandlerFlag} helps to determine whether {@link ChannelHandler} is inbound or outbound
+ * */
 final class ChannelHandlerFlag {
   static final int FLAG_INBOUND = 1;
   static final int FLAG_OUTBOUND = 1;

@@ -7,7 +7,15 @@ import io.el.concurrent.EventLoop;
 import io.el.internal.ObjectUtil;
 
 abstract public class AbstractChannelHandlerContext implements ChannelHandlerContext {
+
+  /**
+   * {@link ChannelHandlerContext} of the next {@link ChannelHandler} contained in the {@link ChannelPipeline}
+   * */
   volatile AbstractChannelHandlerContext next;
+
+  /**
+   * {@link ChannelHandlerContext} of the previous {@link ChannelHandler} contained in the {@link ChannelPipeline}
+   * */
   volatile AbstractChannelHandlerContext prev;
 
   private final ChannelPipeline pipeline;

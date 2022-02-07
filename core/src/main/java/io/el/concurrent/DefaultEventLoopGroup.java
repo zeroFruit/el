@@ -10,11 +10,11 @@ import java.util.List;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Executor;
+import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Future;
 import java.util.concurrent.ThreadFactory;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
-import java.util.stream.Collectors;
 
 public abstract class DefaultEventLoopGroup implements EventLoopGroup {
 
@@ -73,30 +73,48 @@ public abstract class DefaultEventLoopGroup implements EventLoopGroup {
   }
 
   @Override
+  public boolean shutdownGracefully(long timeout, TimeUnit unit) {
+    return this.children.stream()
+        .map(c -> c.shutdownGracefully(timeout, unit))
+        .filter(s -> s.equals(false))
+        .findAny()
+        .orElse(true);
+  }
+
+  @Override
   public void shutdown() {
-    this.children.forEach(EventLoop::shutdown);
+    throw new UnsupportedOperationException();
   }
 
   @Override
   public List<Runnable> shutdownNow() {
+    throw new UnsupportedOperationException();
+  }
+
+  @Override
+  public boolean isShuttingDown() {
     return this.children.stream()
-        .flatMap(c -> c.shutdownNow().stream())
-        .collect(Collectors.toList());
+        .map(EventLoop::isShuttingDown)
+        .filter(s -> s.equals(false))
+        .findAny()
+        .orElse(true);
   }
 
   @Override
   public boolean isShutdown() {
     return this.children.stream()
-        .map(c -> !c.isShutdown())
-        .findFirst()
+        .map(EventLoop::isShutdown)
+        .filter(s -> s.equals(false))
+        .findAny()
         .orElse(true);
   }
 
   @Override
   public boolean isTerminated() {
     return this.children.stream()
-        .map(c -> !c.isTerminated())
-        .findFirst()
+        .map(EventLoop::isTerminated)
+        .filter(s -> s.equals(false))
+        .findAny()
         .orElse(true);
   }
 

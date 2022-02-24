@@ -34,6 +34,7 @@ public class DefaultChannelPromise extends DefaultPromise<Void>
 
   @Override
   public ChannelPromise await() throws InterruptedException {
-
+    super.await();
+    return this;
   }
 }

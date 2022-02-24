@@ -4,21 +4,18 @@ import static io.el.internal.ObjectUtil.checkPositive;
 
 import io.el.concurrent.EventLoopChooserFactory.EventLoopChooser;
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.Iterator;
 import java.util.List;
 import java.util.concurrent.Callable;
-import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Executor;
 import java.util.concurrent.Future;
 import java.util.concurrent.ThreadFactory;
 import java.util.concurrent.TimeUnit;
-import java.util.concurrent.TimeoutException;
 
 
 public abstract class DefaultEventLoopGroup implements EventLoopGroup {
 
-  static final long DEFAULT_SHUTDOWN_TIMEOUT = 15;
+  static final long DEFAULT_TIMEOUT = 15;
   private final List<EventLoop> children;
   private final EventLoopChooser chooser;
 
@@ -43,18 +40,17 @@ public abstract class DefaultEventLoopGroup implements EventLoopGroup {
         this.children.add(this.newChild(executor));
       } catch (Exception e) {
         for (int j = 0; j < i; j++) {
-          if (this.children.get(j).shutdownGracefully(DEFAULT_SHUTDOWN_TIMEOUT, TimeUnit.SECONDS)) {
-            EventLoop el = this.children.get(j);
-            try {
-              while (!el.isTerminated()) {
-                el.awaitTermination(Integer.MAX_VALUE, TimeUnit.SECONDS);
-              }
-            } catch (InterruptedException interrupted) {
-              Thread.currentThread().interrupt();
-              break;
-            }
-          }
+          this.children.get(j).shutdownGracefully(DEFAULT_TIMEOUT, TimeUnit.SECONDS);
         }
+        this.children.forEach(child -> {
+          try {
+            while (!child.isTerminated()) {
+              child.awaitTermination(DEFAULT_TIMEOUT, TimeUnit.SECONDS);
+            }
+          } catch (InterruptedException interrupted) {
+            Thread.currentThread().interrupt();
+          }
+        });
         throw new IllegalStateException("failed to create a child event loop", e);
       }
     }
@@ -83,16 +79,6 @@ public abstract class DefaultEventLoopGroup implements EventLoopGroup {
         .filter(s -> s.equals(false))
         .findAny()
         .orElse(true);
-  }
-
-  @Override
-  public void shutdown() {
-    throw new UnsupportedOperationException();
-  }
-
-  @Override
-  public List<Runnable> shutdownNow() {
-    throw new UnsupportedOperationException();
   }
 
   @Override
@@ -153,30 +139,6 @@ public abstract class DefaultEventLoopGroup implements EventLoopGroup {
   @Override
   public Promise<?> submit(Runnable task) {
     return this.next().submit(task);
-  }
-
-  @Override
-  public <T> List<Future<T>> invokeAll(Collection<? extends Callable<T>> tasks)
-      throws InterruptedException {
-    return this.next().invokeAll(tasks);
-  }
-
-  @Override
-  public <T> List<Future<T>> invokeAll(Collection<? extends Callable<T>> tasks, long timeout,
-      TimeUnit unit) throws InterruptedException {
-    return this.next().invokeAll(tasks, timeout, unit);
-  }
-
-  @Override
-  public <T> T invokeAny(Collection<? extends Callable<T>> tasks)
-      throws InterruptedException, ExecutionException {
-    return this.next().invokeAny(tasks);
-  }
-
-  @Override
-  public <T> T invokeAny(Collection<? extends Callable<T>> tasks, long timeout, TimeUnit unit)
-      throws InterruptedException, ExecutionException, TimeoutException {
-    return this.next().invokeAny(tasks, timeout, unit);
   }
 
   @Override

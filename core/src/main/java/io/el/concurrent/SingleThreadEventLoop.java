@@ -86,7 +86,7 @@ public abstract class SingleThreadEventLoop extends AbstractEventLoop {
 
   @Override
   public boolean isTerminated() {
-    return state.equals(State.STARTED);
+    return state.equals(State.TERMINATED);
   }
 
   @Override
@@ -152,7 +152,7 @@ public abstract class SingleThreadEventLoop extends AbstractEventLoop {
       success = true;
     } finally {
       if (!success) {
-        stateUpdater.compareAndSet(this, State.STARTED, State.NOT_STARTED);
+        stateUpdater.compareAndSet(this, State.STARTED, State.TERMINATED);
       }
     }
   }

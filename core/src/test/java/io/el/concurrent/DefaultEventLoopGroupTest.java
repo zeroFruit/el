@@ -1,5 +1,6 @@
 package io.el.concurrent;
 
+import static io.el.internal.ObjectUtil.checkNotNull;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
@@ -7,12 +8,13 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 import java.util.Iterator;
+import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.Executor;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ThreadFactory;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicReferenceFieldUpdater;
 import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
@@ -20,21 +22,10 @@ import org.junit.jupiter.api.Test;
 public class DefaultEventLoopGroupTest {
 
   private final Executor mockExecutor = mock(Executor.class);
-
-  private final SingleThreadEventLoop eventLoop = new SingleThreadEventLoop(
+  private final Runnable mockTask = mock(Runnable.class);
+  private final SingleThreadEventLoop eventLoop = new MockEventLoop(
       new ThreadPerTaskExecutor(Executors.defaultThreadFactory())
-  ) {
-
-    @Override
-    protected void run() {
-      while (!confirmShutdown()) {
-        Runnable task = takeTask();
-        if (task != null) {
-          task.run();
-        }
-      }
-    }
-  };
+  );
 
   private final EventLoopChooserFactory.EventLoopChooser chooser = () -> eventLoop;
 
@@ -81,17 +72,88 @@ public class DefaultEventLoopGroupTest {
     assertTrue(defaultEventLoopGroup.next().isShuttingDown());
   }
 
-  // disabled because termination function is not working yet.
   @Test
-  @Disabled
-  @DisplayName("When awaitTermination, then return true")
+  @DisplayName("When mock task executed and awaitTermination, then return true")
   void testAwaitTermination() throws InterruptedException {
     boolean awaitTermination = false;
     try {
+      defaultEventLoopGroup.execute(mockTask);
       awaitTermination = defaultEventLoopGroup.awaitTermination(1, TimeUnit.SECONDS);
     } finally {
       assertTrue(awaitTermination);
-//      assertTrue(defaultEventLoopGroup.next().isTerminated());
+      assertTrue(defaultEventLoopGroup.next().isTerminated());
+    }
+  }
+
+  private static class MockEventLoop extends SingleThreadEventLoop {
+
+    private static final AtomicReferenceFieldUpdater<MockEventLoop, State> stateUpdater =
+        AtomicReferenceFieldUpdater.newUpdater(MockEventLoop.class, State.class, "state");
+    private final CountDownLatch threadLock = new CountDownLatch(1);
+    private volatile State state = State.NOT_STARTED;
+
+    public MockEventLoop(Executor executor) {
+      super(executor);
+    }
+
+    @Override
+    protected void run() {
+      while (!confirmShutdown()) {
+        Runnable task = takeTask();
+        if (task != null) {
+          task.run();
+        }
+      }
+    }
+
+    @Override
+    public void execute(Runnable task) {
+      checkNotNull(task, "task");
+      if (inEventLoop()) {
+        return;
+      }
+      if (!state.equals(State.NOT_STARTED)) {
+        return;
+      }
+      if (!stateUpdater.compareAndSet(this, State.NOT_STARTED, State.STARTED)) {
+        return;
+      }
+      boolean success = false;
+      try {
+        doStart();
+        success = true;
+      } finally {
+        if (!success) {
+          stateUpdater.compareAndSet(this, State.STARTED, State.TERMINATED);
+        }
+      }
+    }
+
+    private void doStart() {
+      try {
+
+      } finally {
+        stateUpdater.compareAndSet(this, State.STARTED, State.TERMINATED);
+      }
+    }
+
+
+    @Override
+    public boolean awaitTermination(long timeout, TimeUnit unit) {
+      if (inEventLoop()) {
+        throw new IllegalStateException("cannot await termination of the current thread");
+      }
+
+      try {
+        threadLock.await(timeout, unit);
+      } catch (InterruptedException e) {
+      }
+      return isTerminated();
+    }
+
+    @Override
+    public boolean isTerminated() {
+      return state.equals(State.TERMINATED);
     }
   }
 }

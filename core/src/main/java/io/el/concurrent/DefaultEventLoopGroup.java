@@ -10,11 +10,11 @@ import java.util.List;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Executor;
-import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Future;
 import java.util.concurrent.ThreadFactory;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
+
 
 public abstract class DefaultEventLoopGroup implements EventLoopGroup {
 
@@ -22,6 +22,10 @@ public abstract class DefaultEventLoopGroup implements EventLoopGroup {
   private final List<EventLoop> children;
   private final EventLoopChooser chooser;
 
+  /***
+   * Create {@link EventLoop} children with size of {@param nThreads},
+   * then add chooser with {@param chooserFactory}
+   */
   protected DefaultEventLoopGroup(
       int nThreads,
       Executor executor,
@@ -118,6 +122,9 @@ public abstract class DefaultEventLoopGroup implements EventLoopGroup {
         .orElse(true);
   }
 
+  /***
+   * Wait until every child {@link EventLoop} terminated through while-loop
+   */
   @Override
   public boolean awaitTermination(long timeout, TimeUnit unit) throws InterruptedException {
     long deadline = System.nanoTime() + unit.toNanos(timeout);

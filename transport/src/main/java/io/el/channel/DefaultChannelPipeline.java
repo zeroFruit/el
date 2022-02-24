@@ -4,6 +4,10 @@ import io.el.concurrent.EventLoop;
 import io.el.internal.ObjectUtil;
 import java.net.SocketAddress;
 
+/**
+ * {@link DefaultChannelPipeline} manages a channel handler list. When an event occurs, it calls the
+ * handlers it manages.
+ */
 public class DefaultChannelPipeline implements ChannelPipeline {
 
   private final Channel channel;
@@ -54,7 +58,7 @@ public class DefaultChannelPipeline implements ChannelPipeline {
   private void remove(AbstractChannelHandlerContext__ context) {
     assert context != this.headContext && context != this.tailContext;
 
-    // Do we need the synchronized?
+    // We need synchronize to call handler removed event atomically.
     synchronized (this) {
       atomicRemoveFromHeandlerList(context);
 
@@ -62,6 +66,9 @@ public class DefaultChannelPipeline implements ChannelPipeline {
     }
   }
 
+  /**
+   * By using this, we can update the next and the prev reference atomically.
+   */
   private synchronized void atomicRemoveFromHeandlerList(AbstractChannelHandlerContext__ context) {
     final AbstractChannelHandlerContext__ prev = context.prev;
     final AbstractChannelHandlerContext__ next = context.next;
@@ -186,6 +193,11 @@ public class DefaultChannelPipeline implements ChannelPipeline {
 
   /**
    * Todo: This class will extends AbstractChannelHandlerContext
+   * The first handler context.
+   *
+   * For the events which calls handlers from last,
+   * the {@link HeadContext} will call channel's methods
+   * after all the handers are called.
    */
   private static final class HeadContext extends AbstractChannelHandlerContext__ {
 
@@ -215,6 +227,7 @@ public class DefaultChannelPipeline implements ChannelPipeline {
   private static final class HeadContextHandler implements ChannelHandler {
     @Override
     public void handlerAdded(ChannelHandlerContext ctx) throws Exception {
+      // TODO:
     }
   }
 
@@ -232,10 +245,13 @@ public class DefaultChannelPipeline implements ChannelPipeline {
     }
   }
 
+  /**
+   * The last handler.
+   */
   private static final class TailContextHandler implements ChannelHandler {
     @Override
     public void handlerAdded(ChannelHandlerContext ctx) throws Exception {
-
+      // TODO:
     }
   }
 }

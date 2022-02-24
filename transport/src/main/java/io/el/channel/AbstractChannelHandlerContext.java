@@ -1,5 +1,6 @@
 package io.el.channel;
 
+import static io.el.channel.ChannelHandlerFlag.FLAG_INBOUND;
 import static io.el.channel.ChannelHandlerFlag.FLAG_OUTBOUND;
 import static io.el.channel.ChannelHandlerFlag.flag;
 
@@ -48,11 +49,6 @@ abstract public class AbstractChannelHandlerContext implements ChannelHandlerCon
     } else {
       eventLoop.execute(() -> next.invokeExceptionCaught(cause));
     }
-  }
-
-  private static boolean skipContext(AbstractChannelHandlerContext ctx, EventLoop eventLoop,
-      int flag, int onlyFlag) {
-    return ctx.eventLoop() == eventLoop && flag != onlyFlag;
   }
 
   @Override
@@ -108,10 +104,9 @@ abstract public class AbstractChannelHandlerContext implements ChannelHandlerCon
 
   private AbstractChannelHandlerContext findContextInbound() {
     AbstractChannelHandlerContext ctx = this;
-    EventLoop currentEventLoop = eventLoop();
     do {
       ctx = ctx.next;
-    } while (skipContext(ctx, currentEventLoop, executionFlag, FLAG_OUTBOUND));
+    } while (ctx.executionFlag != FLAG_INBOUND);
     return ctx;
   }
 }

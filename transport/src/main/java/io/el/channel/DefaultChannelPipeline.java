@@ -106,27 +106,32 @@ public class DefaultChannelPipeline implements ChannelPipeline {
 
   @Override
   public ChannelPromise bind(SocketAddress localAddress) {
+    // TODO:
     return null;
   }
 
   @Override
   public ChannelPromise bind(SocketAddress localAddress, ChannelPromise promise) {
+    // TODO:
     return null;
   }
 
   @Override
   public ChannelPromise connect(SocketAddress remoteAddress, SocketAddress localAddress,
       ChannelPromise promise) {
+    // TODO:
     return null;
   }
 
   @Override
   public ChannelPipeline fireChannelRegistered() {
+    // TODO:
     return null;
   }
 
   @Override
   public ChannelInboundInvoker fireExceptionCaught(Throwable cause) {
+    // TODO:
     return null;
   }
 
@@ -147,17 +152,20 @@ public class DefaultChannelPipeline implements ChannelPipeline {
 
     @Override
     public ChannelPromise bind(SocketAddress localAddress) {
+      // TODO:
       return null;
     }
 
     @Override
     public ChannelPromise bind(SocketAddress localAddress, ChannelPromise promise) {
+      // TODO:
       return null;
     }
 
     @Override
     public ChannelPromise connect(SocketAddress remoteAddress, SocketAddress localAddress,
         ChannelPromise promise) {
+      // TODO:
       return null;
     }
   }

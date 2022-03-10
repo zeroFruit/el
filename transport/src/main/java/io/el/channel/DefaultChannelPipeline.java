@@ -64,13 +64,7 @@ public class DefaultChannelPipeline implements ChannelPipeline {
 
   private void remove(AbstractChannelHandlerContext context) {
     assert context != this.headContext && context != this.tailContext;
-
-    // We need synchronize to call handler removed event atomically.
-    synchronized (this) {
-      atomicRemoveFromHeandlerList(context);
-
-      // TODO: call handler removed
-    }
+    atomicRemoveFromHeandlerList(context);
   }
 
   /**

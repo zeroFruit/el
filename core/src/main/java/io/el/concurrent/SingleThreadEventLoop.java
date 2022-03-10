@@ -74,7 +74,8 @@ public abstract class SingleThreadEventLoop extends AbstractEventLoop {
     return true;
   }
 
-  private boolean isShuttingDown() {
+  @Override
+  public boolean isShuttingDown() {
     return state.compareTo(State.SHUTTING_DOWN) >= 0;
   }
 
@@ -85,7 +86,7 @@ public abstract class SingleThreadEventLoop extends AbstractEventLoop {
 
   @Override
   public boolean isTerminated() {
-    return state.equals(State.STARTED);
+    return state.equals(State.TERMINATED);
   }
 
   @Override

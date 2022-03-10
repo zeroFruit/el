@@ -57,6 +57,16 @@ public abstract class AbstractEventLoop implements EventLoop {
     throw new UnsupportedOperationException();
   }
 
+  @Override
+  public void shutdown() {
+    throw new UnsupportedOperationException();
+  }
+
+  @Override
+  public List<Runnable> shutdownNow() {
+    throw new UnsupportedOperationException();
+  }
+
   protected Executor executor() {
     return executor;
   }
@@ -65,7 +75,8 @@ public abstract class AbstractEventLoop implements EventLoop {
     NOT_STARTED(1),
     STARTED(2),
     SHUTTING_DOWN(3),
-    SHUTDOWN(4);
+    SHUTDOWN(4),
+    TERMINATED(5);
 
     int value;
 

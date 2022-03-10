@@ -152,7 +152,7 @@ public abstract class SingleThreadEventLoop extends AbstractEventLoop {
       success = true;
     } finally {
       if (!success) {
-        stateUpdater.compareAndSet(this, State.STARTED, State.TERMINATED);
+        stateUpdater.compareAndSet(this, State.STARTED, State.NOT_STARTED);
       }
     }
   }

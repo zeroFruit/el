@@ -4,13 +4,16 @@ import static io.el.internal.ObjectUtil.checkPositive;
 
 import io.el.concurrent.EventLoopChooserFactory.EventLoopChooser;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Iterator;
 import java.util.List;
 import java.util.concurrent.Callable;
+import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Executor;
 import java.util.concurrent.Future;
 import java.util.concurrent.ThreadFactory;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
 
 
 public abstract class DefaultEventLoopGroup implements EventLoopGroup {
@@ -144,5 +147,39 @@ public abstract class DefaultEventLoopGroup implements EventLoopGroup {
   @Override
   public void execute(Runnable command) {
     this.next().execute(command);
+  }
+
+  @Override
+  public void shutdown() {
+    throw new UnsupportedOperationException();
+  }
+
+  @Override
+  public List<Runnable> shutdownNow() {
+    throw new UnsupportedOperationException();
+  }
+
+  @Override
+  public <T> List<Future<T>> invokeAll(Collection<? extends Callable<T>> tasks)
+      throws InterruptedException {
+    throw new UnsupportedOperationException();
+  }
+
+  @Override
+  public <T> List<Future<T>> invokeAll(Collection<? extends Callable<T>> tasks, long timeout,
+      TimeUnit unit) throws InterruptedException {
+    throw new UnsupportedOperationException();
+  }
+
+  @Override
+  public <T> T invokeAny(Collection<? extends Callable<T>> tasks)
+      throws InterruptedException, ExecutionException {
+    throw new UnsupportedOperationException();
+  }
+
+  @Override
+  public <T> T invokeAny(Collection<? extends Callable<T>> tasks, long timeout, TimeUnit unit)
+      throws InterruptedException, ExecutionException, TimeoutException {
+    throw new UnsupportedOperationException();
   }
 }

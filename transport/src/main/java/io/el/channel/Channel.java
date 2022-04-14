@@ -3,6 +3,9 @@ package io.el.channel;
 import java.net.SocketAddress;
 
 public interface Channel {
+
+  ChannelId id();
+
   ChannelPipeline pipeline();
 
   boolean isOpen();
@@ -16,6 +19,12 @@ public interface Channel {
   SocketAddress localAddress();
 
   SocketAddress remoteAddress();
+
+  ChannelPromise register(ChannelEventLoop eventLoop);
+
+  ChannelPromise bind(SocketAddress localAddress);
+
+  ChannelPromise connect(SocketAddress remoteAddress);
 
   Internal internal();
 

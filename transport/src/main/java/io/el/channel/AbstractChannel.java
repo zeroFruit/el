@@ -81,7 +81,7 @@ public abstract class AbstractChannel implements Channel {
     }
 
     @Override
-    public void connect(SocketAddress remoteAddress, SocketAddress localAddress, ChannelPromise promise) {
+    public void connect(SocketAddress remoteAddress, ChannelPromise promise) {
       // TODO: implement me
     }
   }

@@ -19,8 +19,8 @@ public class DefaultChannelPipeline implements ChannelPipeline {
 
   public DefaultChannelPipeline(Channel channel) {
     this.channel = channel;
-    this.tailContext = new TailContext();
-    this.headContext = new HeadContext();
+    this.tailContext = new TailContext(this);
+    this.headContext = new HeadContext(this);
 
     this.tailContext.prev = this.headContext;
     this.headContext.next = this.tailContext;

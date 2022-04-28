@@ -1,5 +1,6 @@
 package io.el.channel;
 
+import io.el.internal.ObjectUtil;
 import java.net.SocketAddress;
 
 public abstract class AbstractChannel implements Channel {
@@ -7,7 +8,8 @@ public abstract class AbstractChannel implements Channel {
   private final ChannelPipeline pipeline;
   private final Internal internal;
 
-  private ChannelEventLoop channelEventLoop;
+  private volatile ChannelEventLoop channelEventLoop;
+  private volatile boolean registered;
 
   protected AbstractChannel(ChannelId id) {
     this.id = id;
@@ -30,11 +32,25 @@ public abstract class AbstractChannel implements Channel {
     return internal;
   }
 
+<<<<<<< HEAD
+=======
+  public boolean isRegistered() {
+    return registered;
+  }
+
+  /**
+   * Create a new {@link AbstractInternal} instance which will be used for the life-time of the {@link Channel}
+   * */
+>>>>>>> a9157d9 (feat: impl AbstractChannel register)
   protected abstract AbstractInternal newInternal();
 
   @Override
   public ChannelEventLoop channelEventLoop() {
     return channelEventLoop;
+  }
+
+  private void registerEventLoop(ChannelEventLoop eventLoop) {
+    this.channelEventLoop = eventLoop;
   }
 
   @Override
@@ -53,6 +69,8 @@ public abstract class AbstractChannel implements Channel {
     internal().register(eventLoop, promise);
     return promise;
   }
+
+  protected abstract void register();
 
   @Override
   public ChannelPromise bind(SocketAddress localAddress) {

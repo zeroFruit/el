@@ -1,6 +1,6 @@
 package io.el.channel;
 
-import io.el.concurrent.DefaultEventLoopGroup;
+import io.el.concurrent.AbstractEventLoopGroup;
 import io.el.concurrent.EventLoop;
 import io.el.concurrent.EventLoopChooserFactory;
 import io.el.concurrent.Promise;
@@ -15,7 +15,7 @@ import java.util.concurrent.ThreadFactory;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 
-public class DefaultChannelEventLoopGroup extends DefaultEventLoopGroup implements
+public class DefaultChannelEventLoopGroup extends AbstractEventLoopGroup implements
     ChannelEventLoopGroup {
 
   /***

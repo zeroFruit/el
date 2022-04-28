@@ -1,4 +1,6 @@
-# el
+# el 
+
+[![ci](https://github.com/zeroFruit/el/actions/workflows/ci.yaml/badge.svg)](https://github.com/zeroFruit/el/actions/workflows/ci.yaml)
 
 **el** is a minimal reactive network application framework. This is WIP project. You can see the progress one the Milestone section.
 

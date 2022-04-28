@@ -6,6 +6,7 @@ import static io.el.channel.ChannelHandlerFlag.flag;
 
 import io.el.concurrent.EventLoop;
 import io.el.internal.ObjectUtil;
+import java.net.SocketAddress;
 
 abstract public class AbstractChannelHandlerContext implements ChannelHandlerContext {
 
@@ -108,5 +109,24 @@ abstract public class AbstractChannelHandlerContext implements ChannelHandlerCon
       ctx = ctx.next;
     } while (ctx.executionFlag != FLAG_INBOUND);
     return ctx;
+  }
+
+  @Override
+  public ChannelPromise bind(SocketAddress localAddress) {
+    // TODO: implement me
+    return null;
+  }
+
+  @Override
+  public ChannelPromise bind(SocketAddress localAddress, ChannelPromise promise) {
+    // TODO: implement me
+    return null;
+  }
+
+  @Override
+  public ChannelPromise connect(SocketAddress remoteAddress, SocketAddress localAddress,
+      // TODO: implement me
+      ChannelPromise promise) {
+    return null;
   }
 }

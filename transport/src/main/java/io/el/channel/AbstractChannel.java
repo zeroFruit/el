@@ -12,7 +12,7 @@ public abstract class AbstractChannel implements Channel {
   protected AbstractChannel(ChannelId id) {
     this.id = id;
     this.pipeline = null;
-    this.internal = null;
+    this.internal = newInternal();
   }
 
   @Override
@@ -29,6 +29,8 @@ public abstract class AbstractChannel implements Channel {
   public Internal internal() {
     return internal;
   }
+
+  protected abstract AbstractInternal newInternal();
 
   @Override
   public ChannelEventLoop channelEventLoop() {
@@ -73,11 +75,13 @@ public abstract class AbstractChannel implements Channel {
     @Override
     public void register(ChannelEventLoop eventLoop, ChannelPromise promise) {
       // TODO: implement me
+      AbstractChannel.this.channelEventLoop = eventLoop;
     }
 
     @Override
     public void bind(SocketAddress localAddress, ChannelPromise promise) {
       // TODO: implement me
+      AbstractChannel.this.bind(localAddress);
     }
 
     @Override

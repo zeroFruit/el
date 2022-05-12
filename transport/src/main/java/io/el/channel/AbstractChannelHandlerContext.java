@@ -169,6 +169,9 @@ abstract public class AbstractChannelHandlerContext implements ChannelHandlerCon
       throw new IllegalArgumentException("promise already done: " + promise);
     }
 
+    // ChannelHandlerContext receives a ChannelPromise to notify the event result to the listeners.
+    // If the promise.channel is not the same as the ChannelHandlerContext, the listeners
+    // will receive a wrong channel that is not related to the event.
     if (promise.channel() != channel()) {
       throw new IllegalArgumentException(String.format(
           "promise.channel does not match: %s (expected: %s)", promise.channel(), channel()

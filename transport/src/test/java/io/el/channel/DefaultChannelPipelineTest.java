@@ -96,7 +96,7 @@ public class DefaultChannelPipelineTest {
         Channel channel = new TestChannel() {
           @Override
           public ChannelPromise bind(SocketAddress localAddress) {
-            assert ((InetSocketAddress) localAddress).getPort() == 8080;
+            assertEquals(((InetSocketAddress) localAddress).getPort(), 8080);
             latch.countDown();
             return null;
           }

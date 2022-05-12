@@ -35,6 +35,7 @@ public abstract class SingleThreadEventLoop extends AbstractEventLoop {
   private long nextTaskId;
   private long shutdownStartNanos;
   private long shutdownTimeoutNanos;
+  private long lastExecutionTime;
 
   public SingleThreadEventLoop(Executor executor) {
     super(executor);
@@ -217,6 +218,10 @@ public abstract class SingleThreadEventLoop extends AbstractEventLoop {
 
   private void cancelScheduledTasks() {
     scheduledTaskQueue().clear();
+  }
+
+  protected void updateLastExecutionTime() {
+    lastExecutionTime = Time.currentNanos();
   }
 
   protected Runnable takeTask() {

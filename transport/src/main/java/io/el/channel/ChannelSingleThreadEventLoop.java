@@ -3,18 +3,15 @@ package io.el.channel;
 import io.el.concurrent.EventLoop;
 import io.el.concurrent.SingleThreadEventLoop;
 import io.el.internal.ObjectUtil;
-import java.util.Collections;
 import java.util.Iterator;
-import java.util.Set;
 import java.util.concurrent.Executor;
 
-public class ChannelSingleThreadEventLoop extends SingleThreadEventLoop implements
+public abstract class ChannelSingleThreadEventLoop extends SingleThreadEventLoop implements
     ChannelEventLoop {
 
-  private final Set<EventLoop> selfSet = Collections.singleton(this);
   private final ChannelEventLoopGroup parent;
 
-  public ChannelSingleThreadEventLoop(
+  protected ChannelSingleThreadEventLoop(
       Executor executor,
       ChannelEventLoopGroup parent
   ) {
@@ -23,19 +20,8 @@ public class ChannelSingleThreadEventLoop extends SingleThreadEventLoop implemen
   }
 
   @Override
-  protected void run() {
-    do {
-      Runnable task = takeTask();
-      if (task != null) {
-        task.run();
-        updateLastExecutionTime();
-      }
-    } while (!confirmShutdown());
-  }
-
-  @Override
   public Iterator<EventLoop> iterator() {
-    return selfSet.iterator();
+    throw new UnsupportedOperationException();
   }
 
   @Override
@@ -50,11 +36,7 @@ public class ChannelSingleThreadEventLoop extends SingleThreadEventLoop implemen
 
   @Override
   public ChannelPromise register(Channel channel) {
-    return register(new DefaultChannelPromise(channel, this));
-  }
-
-  @Override
-  public ChannelPromise register(final ChannelPromise promise) {
+    ChannelPromise promise = new DefaultChannelPromise(channel, this);
     ObjectUtil.checkNotNull(promise, "promise");
     promise.channel().internal().register(this, promise);
     return promise;

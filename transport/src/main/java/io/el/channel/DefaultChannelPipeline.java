@@ -167,24 +167,18 @@ public class DefaultChannelPipeline implements ChannelPipeline {
    */
   private static final class HeadContext extends AbstractChannelHandlerContext {
 
-    private final HeadContextHandler context;
+    private final HeadContextHandler handler;
     private final Internal internal;
 
     public HeadContext(DefaultChannelPipeline pipeline) {
       super(HEAD_NAME, pipeline, null, HeadContextHandler.class);
-      this.context = new HeadContextHandler();
       this.internal = pipeline.channel().internal();
+      this.handler = new HeadContextHandler(this.internal);
     }
 
     @Override
     public ChannelHandler handler() {
-      return this.context;
-    }
-
-    @Override
-    public ChannelPromise bind(SocketAddress localAddress, ChannelPromise promise) {
-      this.internal.bind(localAddress, promise);
-      return promise;
+      return this.handler;
     }
 
     /**
@@ -197,9 +191,28 @@ public class DefaultChannelPipeline implements ChannelPipeline {
     }
   }
 
-  private static final class HeadContextHandler implements ChannelHandler {
+  private static final class HeadContextHandler implements ChannelHandler, ChannelOutboundHandler {
+
+    private final Internal internal;
+
+    private HeadContextHandler(Internal internal) {
+      this.internal = internal;
+    }
+
     @Override
     public void handlerAdded(ChannelHandlerContext ctx) throws Exception {
+      // TODO:
+    }
+
+    @Override
+    public void bind(ChannelHandlerContext ctx, SocketAddress localAddress, ChannelPromise promise)
+        throws Exception {
+      this.internal.bind(localAddress, promise);
+    }
+
+    @Override
+    public void connect(ChannelHandlerContext ctx, SocketAddress remoteAddress,
+        SocketAddress localAddress, ChannelPromise promise) throws Exception {
       // TODO:
     }
   }

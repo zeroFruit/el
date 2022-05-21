@@ -139,16 +139,25 @@ abstract public class AbstractChannelHandlerContext implements ChannelHandlerCon
     final AbstractChannelHandlerContext next = findContextOutbound();
     final EventLoop eventLoop = next.eventLoop();
     if (eventLoop.inEventLoop()) {
-      next.bind(localAddress, promise);
+      next.invokeBind(localAddress, promise);
     } else {
       safeExecute(eventLoop, () -> {
-        next.bind(localAddress, promise);
+        next.invokeBind(localAddress, promise);
       }, promise);
     }
     return promise;
   }
 
-  private static boolean safeExecute(EventLoop eventLoop, Runnable runnable, ChannelPromise promise) {
+  private void invokeBind(SocketAddress localAddress, ChannelPromise promise) {
+    try {
+      ((ChannelOutboundHandler) handler()).bind(this, localAddress, promise);
+    } catch (Throwable t) {
+      promise.setFailure(t);
+    }
+  }
+
+  private static boolean safeExecute(EventLoop eventLoop, Runnable runnable,
+      ChannelPromise promise) {
     try {
       eventLoop.execute(runnable);
       return true;

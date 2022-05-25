@@ -34,16 +34,14 @@ public class DefaultChannelEventLoopGroup extends AbstractEventLoopGroup impleme
     super(maxChannels, executor, chooserFactory);
   }
 
-  // TODO: implements this after ChannelEventLoop implemented
   @Override
-  protected EventLoop newChild(Executor executor) throws Exception {
-    return null;
+  protected EventLoop newChild(Executor executor) {
+    return new DefaultChannelEventLoop(executor, this);
   }
 
-  // TODO: implements this after ThreadFactory implemented
   @Override
   protected ThreadFactory newDefaultThreadFactory() {
-    return null;
+    return new DefaultThreadFactory();
   }
 
   @Override

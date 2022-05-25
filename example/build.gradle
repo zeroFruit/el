@@ -9,9 +9,7 @@ ext {
     javaMainClass = "io.el.example.executor.TaskExecutor"
 }
 
-application {
-    mainClassName = javaMainClass
-}
+mainClassName = javaMainClass
 
 group 'io.el'
 version '1.0-SNAPSHOT'

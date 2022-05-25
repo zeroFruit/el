@@ -1,5 +1,6 @@
 package io.el.channel;
 
+import io.el.channel.Channel.Internal;
 import io.el.concurrent.EventLoop;
 import io.el.internal.ObjectUtil;
 import java.net.SocketAddress;
@@ -106,14 +107,12 @@ public class DefaultChannelPipeline implements ChannelPipeline {
 
   @Override
   public ChannelPromise bind(SocketAddress localAddress) {
-    // TODO:
-    return null;
+    return this.tailContext.bind(localAddress);
   }
 
   @Override
   public ChannelPromise bind(SocketAddress localAddress, ChannelPromise promise) {
-    // TODO:
-    return null;
+    return this.tailContext.bind(localAddress, promise);
   }
 
   @Override
@@ -151,18 +150,6 @@ public class DefaultChannelPipeline implements ChannelPipeline {
     }
 
     @Override
-    public ChannelPromise bind(SocketAddress localAddress) {
-      // TODO:
-      return null;
-    }
-
-    @Override
-    public ChannelPromise bind(SocketAddress localAddress, ChannelPromise promise) {
-      // TODO:
-      return null;
-    }
-
-    @Override
     public ChannelPromise connect(SocketAddress remoteAddress, SocketAddress localAddress,
         ChannelPromise promise) {
       // TODO:
@@ -180,35 +167,18 @@ public class DefaultChannelPipeline implements ChannelPipeline {
    */
   private static final class HeadContext extends AbstractChannelHandlerContext {
 
-    private final HeadContextHandler context;
+    private final HeadContextHandler handler;
+    private final Internal internal;
 
     public HeadContext(DefaultChannelPipeline pipeline) {
       super(HEAD_NAME, pipeline, null, HeadContextHandler.class);
-      this.context = new HeadContextHandler();
+      this.internal = pipeline.channel().internal();
+      this.handler = new HeadContextHandler(this.internal);
     }
 
     @Override
     public ChannelHandler handler() {
-      return this.context;
-    }
-
-    /**
-     * FIXME: This will be implemented in the {@link AbstractChannelHandlerContext}
-     */
-    @Override
-    public ChannelPromise bind(SocketAddress localAddress) {
-      return null;
-    }
-
-    /**
-     * Pipeline will call `bind` from the tail handler. This is the last `bind` function in the pipe
-     * line.
-     */
-    @Override
-    public ChannelPromise bind(SocketAddress localAddress, ChannelPromise promise) {
-      this.channel().internal().bind(localAddress, promise);
-      // FIXME: I'm not sure whether returning the promise from argument is ok or not
-      return promise;
+      return this.handler;
     }
 
     /**
@@ -221,9 +191,28 @@ public class DefaultChannelPipeline implements ChannelPipeline {
     }
   }
 
-  private static final class HeadContextHandler implements ChannelHandler {
+  private static final class HeadContextHandler implements ChannelHandler, ChannelOutboundHandler {
+
+    private final Internal internal;
+
+    private HeadContextHandler(Internal internal) {
+      this.internal = internal;
+    }
+
     @Override
     public void handlerAdded(ChannelHandlerContext ctx) throws Exception {
+      // TODO:
+    }
+
+    @Override
+    public void bind(ChannelHandlerContext ctx, SocketAddress localAddress, ChannelPromise promise)
+        throws Exception {
+      this.internal.bind(localAddress, promise);
+    }
+
+    @Override
+    public void connect(ChannelHandlerContext ctx, SocketAddress remoteAddress,
+        SocketAddress localAddress, ChannelPromise promise) throws Exception {
       // TODO:
     }
   }
@@ -240,22 +229,6 @@ public class DefaultChannelPipeline implements ChannelPipeline {
     @Override
     public ChannelHandler handler() {
       return this.context;
-    }
-
-    /**
-     * FIXME: This will be implemented in the {@link AbstractChannelHandlerContext}
-     */
-    @Override
-    public ChannelPromise bind(SocketAddress localAddress) {
-      return null;
-    }
-
-    /**
-     * FIXME: This will be implemented in the {@link AbstractChannelHandlerContext}
-     */
-    @Override
-    public ChannelPromise bind(SocketAddress localAddress, ChannelPromise promise) {
-      return null;
     }
 
     /**

@@ -111,16 +111,86 @@ abstract public class AbstractChannelHandlerContext implements ChannelHandlerCon
     return ctx;
   }
 
+  private AbstractChannelHandlerContext findContextOutbound() {
+    AbstractChannelHandlerContext ctx = this;
+    do {
+      ctx = ctx.prev;
+    } while (ctx.executionFlag != FLAG_OUTBOUND);
+    return ctx;
+  }
+
+  public ChannelPromise newPromise() {
+    return new DefaultChannelPromise(channel(), eventLoop());
+  }
+
   @Override
   public ChannelPromise bind(SocketAddress localAddress) {
-    // TODO: implement me
-    return null;
+    return this.bind(localAddress, newPromise());
   }
 
   @Override
   public ChannelPromise bind(SocketAddress localAddress, ChannelPromise promise) {
-    // TODO: implement me
-    return null;
+    ObjectUtil.checkNotNull(localAddress, "localAddress");
+    if (isNotValidPromise(promise)) {
+      // canceled
+      return promise;
+    }
+
+    final AbstractChannelHandlerContext next = findContextOutbound();
+    final EventLoop eventLoop = next.eventLoop();
+    if (eventLoop.inEventLoop()) {
+      next.invokeBind(localAddress, promise);
+    } else {
+      safeExecute(eventLoop, () -> {
+        next.invokeBind(localAddress, promise);
+      }, promise);
+    }
+    return promise;
+  }
+
+  private void invokeBind(SocketAddress localAddress, ChannelPromise promise) {
+    try {
+      ((ChannelOutboundHandler) handler()).bind(this, localAddress, promise);
+    } catch (Throwable t) {
+      promise.setFailure(t);
+    }
+  }
+
+  private static boolean safeExecute(EventLoop eventLoop, Runnable runnable,
+      ChannelPromise promise) {
+    try {
+      eventLoop.execute(runnable);
+      return true;
+    } catch (Throwable cause) {
+      promise.setFailure(cause);
+      return false;
+    }
+  }
+
+  private boolean isNotValidPromise(ChannelPromise promise) {
+    ObjectUtil.checkNotNull(promise, "promise");
+
+    if (promise.isDone()) {
+      // if the promise is canceled, we do not need to continue the code
+      if (promise.isCancelled()) {
+        return true;
+      }
+      throw new IllegalArgumentException("promise already done: " + promise);
+    }
+
+    // ChannelHandlerContext receives a ChannelPromise to notify the event result to the listeners.
+    // If the promise.channel is not the same as the ChannelHandlerContext, the listeners
+    // will receive a wrong channel that is not related to the event.
+    if (promise.channel() != channel()) {
+      throw new IllegalArgumentException(String.format(
+          "promise.channel does not match: %s (expected: %s)", promise.channel(), channel()
+      ));
+    }
+
+    if (promise.getClass() == DefaultChannelPromise.class) {
+      return false;
+    }
+    return false;
   }
 
   @Override

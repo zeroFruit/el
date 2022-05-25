@@ -89,7 +89,7 @@ public class DefaultChannelPipelineTest {
     public void checkChannelBindCalled() throws InterruptedException {
       Executor executor = new ThreadPerTaskExecutor(
           Executors.defaultThreadFactory());
-      TestEventLoop eventLoop = new TestEventLoop(executor);
+      final DefaultChannelEventLoop eventLoop = new DefaultChannelEventLoop(executor, null);
 
       try {
         final CountDownLatch latch = new CountDownLatch(1);
@@ -110,43 +110,6 @@ public class DefaultChannelPipelineTest {
       } finally {
         eventLoop.shutdownGracefully(1, TimeUnit.SECONDS);
       }
-    }
-  }
-
-  private static class TestEventLoop extends SingleThreadEventLoop implements ChannelEventLoop {
-
-    public TestEventLoop(Executor executor) {
-      super(executor);
-    }
-
-    @Override
-    protected void run() {
-      while (!confirmShutdown()) {
-        Runnable task = takeTask();
-        if (task != null) {
-          task.run();
-        }
-      }
-    }
-
-    @Override
-    public Iterator<EventLoop> iterator() {
-      return null;
-    }
-
-    @Override
-    public ChannelEventLoopGroup parent() {
-      return null;
-    }
-
-    @Override
-    public ChannelEventLoop next() {
-      return this;
-    }
-
-    @Override
-    public ChannelPromise register(Channel channel) {
-      return null;
     }
   }
 

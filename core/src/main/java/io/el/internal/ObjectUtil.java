@@ -2,8 +2,7 @@ package io.el.internal;
 
 public final class ObjectUtil {
 
-  private ObjectUtil() {
-  }
+  private ObjectUtil() {}
 
   public static <T> T checkNotNull(T arg, String text) {
     if (arg == null) {

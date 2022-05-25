@@ -6,8 +6,8 @@ public final class DefaultChannelHandlerContext extends AbstractChannelHandlerCo
 
   private final ChannelHandler handler;
 
-  DefaultChannelHandlerContext(String name, ChannelPipeline pipeline,
-      EventLoop eventLoop, ChannelHandler handler) {
+  DefaultChannelHandlerContext(
+      String name, ChannelPipeline pipeline, EventLoop eventLoop, ChannelHandler handler) {
     super(name, pipeline, eventLoop, handler.getClass());
     this.handler = handler;
   }

@@ -19,8 +19,8 @@ import org.junit.jupiter.api.Test;
 public class DefaultPriorityQueueTest {
 
   private static void testRemoval(boolean typed) {
-    PriorityQueue<TestElement> queue = new DefaultPriorityQueue<TestElement>(4,
-        new TestElementComparator());
+    PriorityQueue<TestElement> queue =
+        new DefaultPriorityQueue<TestElement>(4, new TestElementComparator());
     assertEmptyQueue(queue);
 
     TestElement a = new TestElement(5);
@@ -88,8 +88,8 @@ public class DefaultPriorityQueueTest {
 
   @Test
   public void testPoll() {
-    PriorityQueue<TestElement> queue = new DefaultPriorityQueue<TestElement>(0,
-        new TestElementComparator());
+    PriorityQueue<TestElement> queue =
+        new DefaultPriorityQueue<TestElement>(0, new TestElementComparator());
     assertEmptyQueue(queue);
 
     TestElement a = new TestElement(5);
@@ -131,8 +131,8 @@ public class DefaultPriorityQueueTest {
 
   @Test
   public void testClear() {
-    PriorityQueue<TestElement> queue = new DefaultPriorityQueue<TestElement>(0,
-        new TestElementComparator());
+    PriorityQueue<TestElement> queue =
+        new DefaultPriorityQueue<TestElement>(0, new TestElementComparator());
     assertEmptyQueue(queue);
 
     TestElement a = new TestElement(5);
@@ -174,8 +174,8 @@ public class DefaultPriorityQueueTest {
 
   @Test
   public void testChangePriority() {
-    PriorityQueue<TestElement> queue = new DefaultPriorityQueue<TestElement>(0,
-        new TestElementComparator());
+    PriorityQueue<TestElement> queue =
+        new DefaultPriorityQueue<TestElement>(0, new TestElementComparator());
     assertEmptyQueue(queue);
     TestElement a = new TestElement(10);
     TestElement b = new TestElement(20);
@@ -224,8 +224,8 @@ public class DefaultPriorityQueueTest {
 
   @Test
   public void testRemove() {
-    PriorityQueue<TestElement> queue = new DefaultPriorityQueue<TestElement>(0,
-        new TestElementComparator());
+    PriorityQueue<TestElement> queue =
+        new DefaultPriorityQueue<TestElement>(0, new TestElementComparator());
     assertEmptyQueue(queue);
 
     TestElement a = new TestElement(5);
@@ -253,14 +253,13 @@ public class DefaultPriorityQueueTest {
     assertEmptyQueue(queue);
   }
 
-  private static final class TestElementComparator implements Comparator<TestElement>,
-      Serializable {
+  private static final class TestElementComparator
+      implements Comparator<TestElement>, Serializable {
 
     static final TestElementComparator INSTANCE = new TestElementComparator();
     private static final long serialVersionUID = 7930368853384760103L;
 
-    private TestElementComparator() {
-    }
+    private TestElementComparator() {}
 
     @Override
     public int compare(TestElement o1, TestElement o2) {

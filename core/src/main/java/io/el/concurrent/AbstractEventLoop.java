@@ -42,8 +42,8 @@ public abstract class AbstractEventLoop implements EventLoop {
   }
 
   @Override
-  public <V> List<Future<V>> invokeAll(Collection<? extends Callable<V>> tasks, long timeout,
-      TimeUnit unit) {
+  public <V> List<Future<V>> invokeAll(
+      Collection<? extends Callable<V>> tasks, long timeout, TimeUnit unit) {
     throw new UnsupportedOperationException();
   }
 

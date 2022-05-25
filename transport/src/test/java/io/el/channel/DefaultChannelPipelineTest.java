@@ -5,12 +5,9 @@ import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.mock;
 
-import io.el.concurrent.EventLoop;
-import io.el.concurrent.SingleThreadEventLoop;
 import io.el.concurrent.ThreadPerTaskExecutor;
 import java.net.InetSocketAddress;
 import java.net.SocketAddress;
-import java.util.Iterator;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.Executor;
 import java.util.concurrent.Executors;
@@ -87,20 +84,20 @@ public class DefaultChannelPipelineTest {
   class BindMethod {
     @Test
     public void checkChannelBindCalled() throws InterruptedException {
-      Executor executor = new ThreadPerTaskExecutor(
-          Executors.defaultThreadFactory());
+      Executor executor = new ThreadPerTaskExecutor(Executors.defaultThreadFactory());
       final DefaultChannelEventLoop eventLoop = new DefaultChannelEventLoop(executor, null);
 
       try {
         final CountDownLatch latch = new CountDownLatch(1);
-        Channel channel = new TestChannel() {
-          @Override
-          public ChannelPromise bind(SocketAddress localAddress) {
-            assertEquals(((InetSocketAddress) localAddress).getPort(), 8080);
-            latch.countDown();
-            return null;
-          }
-        };
+        Channel channel =
+            new TestChannel() {
+              @Override
+              public ChannelPromise bind(SocketAddress localAddress) {
+                assertEquals(((InetSocketAddress) localAddress).getPort(), 8080);
+                latch.countDown();
+                return null;
+              }
+            };
         channel.register(eventLoop);
 
         DefaultChannelPipeline channelPipeline = new DefaultChannelPipeline(channel);

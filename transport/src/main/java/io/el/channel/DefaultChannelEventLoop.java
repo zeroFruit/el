@@ -4,10 +4,7 @@ import java.util.concurrent.Executor;
 
 public class DefaultChannelEventLoop extends ChannelSingleThreadEventLoop {
 
-  public DefaultChannelEventLoop(
-      Executor executor,
-      ChannelEventLoopGroup parent
-  ) {
+  public DefaultChannelEventLoop(Executor executor, ChannelEventLoopGroup parent) {
     super(executor, parent);
   }
 

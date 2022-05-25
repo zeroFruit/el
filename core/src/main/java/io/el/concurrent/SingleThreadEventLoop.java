@@ -40,9 +40,8 @@ public abstract class SingleThreadEventLoop extends AbstractEventLoop {
   public SingleThreadEventLoop(Executor executor) {
     super(executor);
     this.taskQueue = new LinkedBlockingDeque<>(INITIAL_QUEUE_CAPACITY);
-    this.scheduledPromiseQueue = new DefaultPriorityQueue<>(
-        INITIAL_QUEUE_CAPACITY,
-        SCHEDULED_FUTURE_TASK_COMPARATOR);
+    this.scheduledPromiseQueue =
+        new DefaultPriorityQueue<>(INITIAL_QUEUE_CAPACITY, SCHEDULED_FUTURE_TASK_COMPARATOR);
   }
 
   @Override
@@ -112,10 +111,8 @@ public abstract class SingleThreadEventLoop extends AbstractEventLoop {
     }
 
     nextTaskId += 1;
-    ScheduledPromise<V> task = new ScheduledPromise<>(
-        this,
-        command,
-        ScheduledPromise.deadlineNanos(unit.toNanos(delay)));
+    ScheduledPromise<V> task =
+        new ScheduledPromise<>(this, command, ScheduledPromise.deadlineNanos(unit.toNanos(delay)));
 
     if (!inEventLoop()) {
       execute(task);
@@ -162,43 +159,47 @@ public abstract class SingleThreadEventLoop extends AbstractEventLoop {
     if (thread != null) {
       return;
     }
-    executor().execute(() -> {
-      thread = Thread.currentThread();
-      try {
-        SingleThreadEventLoop.this.run();
-      } catch (Throwable t) {
-        LOGGER.error("An event loop terminated with unexpected exception. Exception:", t);
-      } finally {
-        while (true) {
-          if (state.compareTo(State.SHUTTING_DOWN) >= 0 ||
-              stateUpdater.compareAndSet(SingleThreadEventLoop.this, state, State.SHUTTING_DOWN)) {
-            break;
-          }
-        }
-        try {
-          // Run all remaining tasks
-          while (true) {
-            if (confirmShutdown()) {
-              break;
-            }
-          }
-          // Now we want to make sure no more tasks can be added from this point.
-          while (true) {
-            if (state.compareTo(State.SHUTDOWN) >= 0 ||
-                stateUpdater.compareAndSet(SingleThreadEventLoop.this, state, State.SHUTDOWN)) {
-              break;
-            }
-          }
-        } finally {
-          // drain tasks
-          int numTasks = drainTasks();
-          if (numTasks > 0) {
-            LOGGER.info("An event loop terminated with " +
-                "non-empty task queue ({})", numTasks);
-          }
-        }
-      }
-    });
+    executor()
+        .execute(
+            () -> {
+              thread = Thread.currentThread();
+              try {
+                SingleThreadEventLoop.this.run();
+              } catch (Throwable t) {
+                LOGGER.error("An event loop terminated with unexpected exception. Exception:", t);
+              } finally {
+                while (true) {
+                  if (state.compareTo(State.SHUTTING_DOWN) >= 0
+                      || stateUpdater.compareAndSet(
+                          SingleThreadEventLoop.this, state, State.SHUTTING_DOWN)) {
+                    break;
+                  }
+                }
+                try {
+                  // Run all remaining tasks
+                  while (true) {
+                    if (confirmShutdown()) {
+                      break;
+                    }
+                  }
+                  // Now we want to make sure no more tasks can be added from this point.
+                  while (true) {
+                    if (state.compareTo(State.SHUTDOWN) >= 0
+                        || stateUpdater.compareAndSet(
+                            SingleThreadEventLoop.this, state, State.SHUTDOWN)) {
+                      break;
+                    }
+                  }
+                } finally {
+                  // drain tasks
+                  int numTasks = drainTasks();
+                  if (numTasks > 0) {
+                    LOGGER.info(
+                        "An event loop terminated with " + "non-empty task queue ({})", numTasks);
+                  }
+                }
+              }
+            });
   }
 
   protected boolean confirmShutdown() {

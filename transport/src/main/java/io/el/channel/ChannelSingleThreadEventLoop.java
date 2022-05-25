@@ -6,15 +6,12 @@ import io.el.internal.ObjectUtil;
 import java.util.Iterator;
 import java.util.concurrent.Executor;
 
-public abstract class ChannelSingleThreadEventLoop extends SingleThreadEventLoop implements
-    ChannelEventLoop {
+public abstract class ChannelSingleThreadEventLoop extends SingleThreadEventLoop
+    implements ChannelEventLoop {
 
   private final ChannelEventLoopGroup parent;
 
-  protected ChannelSingleThreadEventLoop(
-      Executor executor,
-      ChannelEventLoopGroup parent
-  ) {
+  protected ChannelSingleThreadEventLoop(Executor executor, ChannelEventLoopGroup parent) {
     super(executor);
     this.parent = parent;
   }

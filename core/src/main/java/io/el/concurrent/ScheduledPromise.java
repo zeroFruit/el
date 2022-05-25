@@ -4,11 +4,9 @@ import io.el.internal.PriorityQueueNode;
 import io.el.internal.Time;
 import java.util.concurrent.Callable;
 import java.util.concurrent.Delayed;
-import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 
-public class ScheduledPromise<V> extends DefaultPromise<V> implements PriorityQueueNode,
-    Delayed {
+public class ScheduledPromise<V> extends DefaultPromise<V> implements PriorityQueueNode, Delayed {
 
   private final long deadlineNanos;
   private int queueIndex = INDEX_NOT_IN_QUEUE;

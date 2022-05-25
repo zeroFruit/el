@@ -5,8 +5,7 @@ import io.el.concurrent.EventLoop;
 import io.el.concurrent.Promise;
 import io.el.concurrent.PromiseListener;
 
-public class DefaultChannelPromise extends DefaultPromise<Void>
-    implements ChannelPromise {
+public class DefaultChannelPromise extends DefaultPromise<Void> implements ChannelPromise {
 
   private final Channel channel;
 

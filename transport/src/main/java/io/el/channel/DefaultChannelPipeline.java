@@ -45,8 +45,8 @@ public class DefaultChannelPipeline implements ChannelPipeline {
     // TODO: generate name with the {@link ChannelHandler.getClass()}
     String name = UUID.randomUUID().toString();
     EventLoop eventLoop = null;
-    final AbstractChannelHandlerContext newHandlerContext = new DefaultHandlerContext__(name, this, eventLoop, handler);
-
+    final AbstractChannelHandlerContext newHandlerContext =
+        new DefaultHandlerContext__(name, this, eventLoop, handler);
 
     this.tailContext.prev = newHandlerContext;
     newHandlerContext.next = this.tailContext;
@@ -68,9 +68,7 @@ public class DefaultChannelPipeline implements ChannelPipeline {
     atomicRemoveFromHeandlerList(context);
   }
 
-  /**
-   * By using this, we can update the next and the prev reference atomically.
-   */
+  /** By using this, we can update the next and the prev reference atomically. */
   private synchronized void atomicRemoveFromHeandlerList(AbstractChannelHandlerContext context) {
     final AbstractChannelHandlerContext prev = context.prev;
     final AbstractChannelHandlerContext next = context.next;
@@ -83,7 +81,7 @@ public class DefaultChannelPipeline implements ChannelPipeline {
     ObjectUtil.checkNotNull(handler, "handler");
 
     AbstractChannelHandlerContext ctx = headContext.next;
-    for (;;) {
+    for (; ; ) {
       if (ctx == null) {
         return null;
       }
@@ -116,8 +114,8 @@ public class DefaultChannelPipeline implements ChannelPipeline {
   }
 
   @Override
-  public ChannelPromise connect(SocketAddress remoteAddress, SocketAddress localAddress,
-      ChannelPromise promise) {
+  public ChannelPromise connect(
+      SocketAddress remoteAddress, SocketAddress localAddress, ChannelPromise promise) {
     // TODO:
     return null;
   }
@@ -138,8 +136,8 @@ public class DefaultChannelPipeline implements ChannelPipeline {
 
     private final ChannelHandler handler;
 
-    public DefaultHandlerContext__(String name, ChannelPipeline pipeline, EventLoop eventLoop,
-        ChannelHandler handler) {
+    public DefaultHandlerContext__(
+        String name, ChannelPipeline pipeline, EventLoop eventLoop, ChannelHandler handler) {
       super(name, pipeline, eventLoop, handler.getClass());
       this.handler = handler;
     }
@@ -150,20 +148,18 @@ public class DefaultChannelPipeline implements ChannelPipeline {
     }
 
     @Override
-    public ChannelPromise connect(SocketAddress remoteAddress, SocketAddress localAddress,
-        ChannelPromise promise) {
+    public ChannelPromise connect(
+        SocketAddress remoteAddress, SocketAddress localAddress, ChannelPromise promise) {
       // TODO:
       return null;
     }
   }
 
   /**
-   * Todo: This class will extends AbstractChannelHandlerContext
-   * The first handler context.
-   * <p>
-   * For the events which calls handlers from last,
-   * the {@link HeadContext} will call channel's methods
-   * after all the handers are called.
+   * Todo: This class will extends AbstractChannelHandlerContext The first handler context.
+   *
+   * <p>For the events which calls handlers from last, the {@link HeadContext} will call channel's
+   * methods after all the handers are called.
    */
   private static final class HeadContext extends AbstractChannelHandlerContext {
 
@@ -181,12 +177,10 @@ public class DefaultChannelPipeline implements ChannelPipeline {
       return this.handler;
     }
 
-    /**
-     * FIXME: This will be implemented in the {@link AbstractChannelHandlerContext}
-     */
+    /** FIXME: This will be implemented in the {@link AbstractChannelHandlerContext} */
     @Override
-    public ChannelPromise connect(SocketAddress remoteAddress, SocketAddress localAddress,
-        ChannelPromise promise) {
+    public ChannelPromise connect(
+        SocketAddress remoteAddress, SocketAddress localAddress, ChannelPromise promise) {
       return null;
     }
   }
@@ -211,8 +205,12 @@ public class DefaultChannelPipeline implements ChannelPipeline {
     }
 
     @Override
-    public void connect(ChannelHandlerContext ctx, SocketAddress remoteAddress,
-        SocketAddress localAddress, ChannelPromise promise) throws Exception {
+    public void connect(
+        ChannelHandlerContext ctx,
+        SocketAddress remoteAddress,
+        SocketAddress localAddress,
+        ChannelPromise promise)
+        throws Exception {
       // TODO:
     }
   }
@@ -231,19 +229,15 @@ public class DefaultChannelPipeline implements ChannelPipeline {
       return this.context;
     }
 
-    /**
-     * FIXME: This will be implemented in the {@link AbstractChannelHandlerContext}
-     */
+    /** FIXME: This will be implemented in the {@link AbstractChannelHandlerContext} */
     @Override
-    public ChannelPromise connect(SocketAddress remoteAddress, SocketAddress localAddress,
-        ChannelPromise promise) {
+    public ChannelPromise connect(
+        SocketAddress remoteAddress, SocketAddress localAddress, ChannelPromise promise) {
       return null;
     }
   }
 
-  /**
-   * The last handler.
-   */
+  /** The last handler. */
   private static final class TailContextHandler implements ChannelHandler {
     @Override
     public void handlerAdded(ChannelHandlerContext ctx) throws Exception {

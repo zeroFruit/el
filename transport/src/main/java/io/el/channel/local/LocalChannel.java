@@ -8,7 +8,7 @@ import java.util.Objects;
 
 public class LocalChannel extends AbstractChannel {
 
-  private enum State {
+  public enum State {
     OPEN,
     BOUND,
     CONNECTED,

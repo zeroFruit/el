@@ -3,12 +3,15 @@ package io.el.channel.local;
 import io.el.channel.AbstractServerChannel;
 import io.el.channel.ChannelId;
 import io.el.channel.ChannelPromise;
+import io.el.channel.local.LocalChannel.State;
 import java.net.SocketAddress;
+import java.util.Objects;
 
 public class LocalServerChannel extends AbstractServerChannel {
 
   // localAddress specifies host address. Address is set at binding step
   private volatile LocalAddress localAddress;
+  private volatile State state;
 
   protected LocalServerChannel(ChannelId id) {
     super(id);
@@ -48,6 +51,14 @@ public class LocalServerChannel extends AbstractServerChannel {
     return new LocalChannel(id, this, peer);
   }
 
+  private void setLocalAddress(LocalAddress localAddress) {
+    this.localAddress = localAddress;
+  }
+
+  private LocalServerChannel localServerChannel() {
+    return this;
+  }
+
   private class LocalServerInternal extends AbstractInternal {
 
     @Override
@@ -68,7 +79,11 @@ public class LocalServerChannel extends AbstractServerChannel {
 
     @Override
     public void doBind(SocketAddress localAddress) {
-      // TODO: implement me
+      if (Objects.nonNull(localAddress())) {
+        throw new IllegalArgumentException("already bound");
+      }
+      setLocalAddress(LocalChannelRegistry.register(localServerChannel(), localAddress));
+      state = State.BOUND;
     }
   }
 }

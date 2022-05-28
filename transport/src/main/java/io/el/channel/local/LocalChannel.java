@@ -7,7 +7,7 @@ import java.net.SocketAddress;
 
 public class LocalChannel extends AbstractChannel {
 
-  public enum State {
+  private enum State {
     OPEN,
     BOUND,
     CONNECTED,

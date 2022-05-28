@@ -9,11 +9,7 @@ public class LocalChannelRegistry {
 
   private static final ConcurrentMap<LocalAddress, Channel> boundChannels = new ConcurrentHashMap<>();
 
-  public static LocalAddress register(
-      Channel channel, LocalAddress oldLocalAddress, SocketAddress localAddress) {
-    if (oldLocalAddress != null) {
-      throw new IllegalStateException("already bound");
-    }
+  public static LocalAddress register(Channel channel, SocketAddress localAddress) {
     if (!(localAddress instanceof LocalAddress)) {
       throw new IllegalStateException("unsupported address type: " + LocalAddress.class);
     }

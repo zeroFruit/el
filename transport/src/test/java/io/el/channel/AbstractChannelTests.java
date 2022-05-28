@@ -7,6 +7,8 @@ import static org.mockito.Mockito.when;
 
 import java.net.SocketAddress;
 import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.TimeUnit;
+import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
@@ -39,6 +41,43 @@ public class AbstractChannelTests {
       latch.await();
 
       assertTrue(promise.isSuccess());
+    }
+
+    @Test
+    @DisplayName("when an exception is thrown in the handler, then exceptionCaught is called")
+    public void fireExceptionInRegistered() throws Exception {
+      ChannelEventLoop eventLoop = mock(ChannelEventLoop.class);
+      when(eventLoop.inEventLoop()).thenReturn(true);
+      CountDownLatch latch = new CountDownLatch(1);
+
+      class TestException extends RuntimeException {}
+
+      TestInboundHandler handler =
+          new TestInboundHandler() {
+            @Override
+            public void channelRegistered(ChannelHandlerContext ctx) {
+              throw new TestException();
+            }
+
+            @Override
+            public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause) {
+              if (cause instanceof TestException) {
+                latch.countDown();
+              } else {
+                Assertions.fail();
+              }
+            }
+          };
+
+      TestChannel channel = new TestChannel();
+      channel.pipeline().addLast(handler);
+
+      ChannelPromise promise = new DefaultChannelPromise(channel, eventLoop);
+      channel.internal().register(eventLoop, promise);
+      promise.await();
+
+      boolean latchFired = latch.await(1, TimeUnit.SECONDS);
+      assertTrue(latchFired);
     }
   }
 

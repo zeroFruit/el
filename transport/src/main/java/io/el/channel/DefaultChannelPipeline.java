@@ -131,8 +131,8 @@ public class DefaultChannelPipeline implements ChannelPipeline {
 
   @Override
   public ChannelInboundInvoker fireExceptionCaught(Throwable cause) {
-    // TODO:
-    return null;
+    AbstractChannelHandlerContext.invokeExceptionCaught(headContext, cause);
+    return this;
   }
 
   /**

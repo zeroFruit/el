@@ -204,10 +204,31 @@ public abstract class AbstractChannelHandlerContext implements ChannelHandlerCon
 
   @Override
   public ChannelPromise connect(
-      SocketAddress remoteAddress,
-      SocketAddress localAddress,
-      // TODO: implement me
-      ChannelPromise promise) {
-    return null;
+      SocketAddress remoteAddress, SocketAddress localAddress, ChannelPromise promise) {
+    ObjectUtil.checkNotNull(remoteAddress, "remoteAddress");
+    if (isNotValidPromise(promise)) {
+      // canceled
+      return promise;
+    }
+
+    AbstractChannelHandlerContext next = findContextOutbound();
+    EventLoop eventLoop = next.eventLoop();
+    if (eventLoop.inEventLoop()) {
+      next.invokeConnect(remoteAddress, localAddress, promise);
+    } else {
+      safeExecute(
+          eventLoop, () -> next.invokeConnect(remoteAddress, localAddress, promise), promise);
+    }
+
+    return promise;
+  }
+
+  private void invokeConnect(
+      SocketAddress remoteAddress, SocketAddress localAddress, ChannelPromise promise) {
+    try {
+      ((ChannelOutboundHandler) handler()).connect(this, remoteAddress, localAddress, promise);
+    } catch (Throwable t) {
+      promise.setFailure(t);
+    }
   }
 }

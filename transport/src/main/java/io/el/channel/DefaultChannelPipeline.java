@@ -119,8 +119,7 @@ public class DefaultChannelPipeline implements ChannelPipeline {
   @Override
   public ChannelPromise connect(
       SocketAddress remoteAddress, SocketAddress localAddress, ChannelPromise promise) {
-    // TODO:
-    return null;
+    return this.tailContext.connect(remoteAddress, localAddress, promise);
   }
 
   @Override
@@ -192,7 +191,7 @@ public class DefaultChannelPipeline implements ChannelPipeline {
         SocketAddress localAddress,
         ChannelPromise promise)
         throws Exception {
-      // TODO:
+      this.internal.connect(remoteAddress, localAddress, promise);
     }
 
     @Override
@@ -217,13 +216,6 @@ public class DefaultChannelPipeline implements ChannelPipeline {
     @Override
     public ChannelHandler handler() {
       return this.context;
-    }
-
-    /** FIXME: This will be implemented in the {@link AbstractChannelHandlerContext} */
-    @Override
-    public ChannelPromise connect(
-        SocketAddress remoteAddress, SocketAddress localAddress, ChannelPromise promise) {
-      return null;
     }
   }
 

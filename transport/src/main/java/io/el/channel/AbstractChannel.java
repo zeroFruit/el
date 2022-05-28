@@ -77,6 +77,11 @@ public abstract class AbstractChannel implements Channel {
     return pipeline().connect(remoteAddress, localAddress(), newPromise());
   }
 
+  @Override
+  public ChannelPromise connect(SocketAddress remoteAddress, SocketAddress localAddress) {
+    return pipeline().connect(remoteAddress, localAddress, newPromise());
+  }
+
   private ChannelPromise newPromise() {
     return new DefaultChannelPromise(this, channelEventLoop);
   }
@@ -122,11 +127,6 @@ public abstract class AbstractChannel implements Channel {
     public void bind(SocketAddress localAddress, ChannelPromise promise) {
       // TODO: implement me
       AbstractChannel.this.bind(localAddress);
-    }
-
-    @Override
-    public void connect(SocketAddress remoteAddress, ChannelPromise promise) {
-      // TODO: implement me
     }
   }
 }

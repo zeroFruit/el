@@ -30,7 +30,7 @@ public class DefaultChannelEventLoopGroup extends AbstractEventLoopGroup impleme
       Executor executor,
       EventLoopChooserFactory chooserFactory
   ) {
-    // maybe, change after chooser factory implemented
+    // TODO: change after chooser factory implemented
     super(maxChannels, executor, chooserFactory);
   }
 

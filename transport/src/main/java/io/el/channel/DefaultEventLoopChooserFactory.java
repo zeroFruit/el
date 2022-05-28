@@ -28,7 +28,7 @@ public class DefaultEventLoopChooserFactory implements EventLoopChooserFactory {
     }
   }
 
-  public static class AtomicIntegerRoundRobin {
+  private static class AtomicIntegerRoundRobin {
 
     private final AtomicInteger atomicInteger = new AtomicInteger(-1);
     private final int totalIndexes;
@@ -38,13 +38,8 @@ public class DefaultEventLoopChooserFactory implements EventLoopChooserFactory {
     }
 
     public int index() {
-      int currentIndex;
-      int nextIndex;
-
-      do {
-        currentIndex = this.atomicInteger.get();
-        nextIndex = currentIndex < Integer.MAX_VALUE ? currentIndex + 1 : 0;
-      } while (!this.atomicInteger.compareAndSet(currentIndex, nextIndex));
+      int currentIndex = this.atomicInteger.get();
+      int nextIndex = currentIndex + 1;
 
       return nextIndex % this.totalIndexes;
     }

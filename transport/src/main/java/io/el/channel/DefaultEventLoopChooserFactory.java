@@ -38,10 +38,7 @@ public class DefaultEventLoopChooserFactory implements EventLoopChooserFactory {
     }
 
     public int index() {
-      int currentIndex = this.atomicInteger.get();
-      int nextIndex = currentIndex + 1;
-
-      return nextIndex % this.totalIndexes;
+      return this.atomicInteger.incrementAndGet() % this.totalIndexes;
     }
   }
 }

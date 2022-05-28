@@ -2,20 +2,23 @@ package io.el.channel.local;
 
 import io.el.channel.AbstractServerChannel;
 import io.el.channel.ChannelId;
+import io.el.channel.local.LocalChannel.State;
+import io.el.internal.ObjectUtil;
 import java.net.SocketAddress;
 
 public class LocalServerChannel extends AbstractServerChannel {
 
   // localAddress specifies host address. Address is set at binding step
   private volatile LocalAddress localAddress;
+  private volatile State state;
 
   protected LocalServerChannel(ChannelId id) {
     super(id);
   }
 
   @Override
-  protected AbstractInternal newInternal() {
-    return null;
+  protected LocalServerInternal newInternal() {
+    return new LocalServerInternal();
   }
 
   @Override
@@ -35,12 +38,12 @@ public class LocalServerChannel extends AbstractServerChannel {
 
   @Override
   public boolean isOpen() {
-    return false;
+    return state != State.CLOSED;
   }
 
   @Override
   public boolean isActive() {
-    return false;
+    return state == State.CONNECTED;
   }
 
   protected LocalChannel newLocalChannel(ChannelId id, LocalChannel peer) {
@@ -62,7 +65,10 @@ public class LocalServerChannel extends AbstractServerChannel {
 
     @Override
     public void doBind(SocketAddress localAddress) {
-      // TODO: implement me
+      ObjectUtil.checkNotNull(localAddress(), "already bound");
+      LocalServerChannel.this.localAddress =
+          LocalChannelRegistry.register(LocalServerChannel.this, localAddress);
+      state = State.BOUND;
     }
   }
 }

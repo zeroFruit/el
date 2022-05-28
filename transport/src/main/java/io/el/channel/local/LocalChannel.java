@@ -4,6 +4,7 @@ import io.el.channel.AbstractChannel;
 import io.el.channel.Channel;
 import io.el.channel.ChannelId;
 import io.el.channel.ChannelPromise;
+import io.el.internal.ObjectUtil;
 import java.net.ConnectException;
 import java.net.SocketAddress;
 import java.nio.channels.AlreadyConnectedException;
@@ -11,7 +12,7 @@ import java.nio.channels.ClosedChannelException;
 
 public class LocalChannel extends AbstractChannel {
 
-  private enum State {
+  public enum State {
     OPEN,
     BOUND,
     CONNECTED,
@@ -37,7 +38,7 @@ public class LocalChannel extends AbstractChannel {
   }
 
   @Override
-  protected AbstractInternal newInternal() {
+  protected LocalInternal newInternal() {
     return new LocalInternal();
   }
 
@@ -115,7 +116,10 @@ public class LocalChannel extends AbstractChannel {
 
     @Override
     public void doBind(SocketAddress localAddress) {
-      // TODO: implement me
+      ObjectUtil.checkNotNull(localAddress(), "already bound");
+      LocalChannel.this.localAddress =
+          LocalChannelRegistry.register(LocalChannel.this, localAddress);
+      state = State.BOUND;
     }
   }
 }

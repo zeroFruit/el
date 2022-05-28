@@ -1,7 +1,5 @@
-package io.el.channel;
+package io.el.concurrent;
 
-import io.el.concurrent.EventLoop;
-import io.el.concurrent.EventLoopChooserFactory;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicInteger;
 
@@ -9,14 +7,14 @@ public class DefaultEventLoopChooserFactory implements EventLoopChooserFactory {
 
   @Override
   public EventLoopChooser newChooser(List<EventLoop> loops) {
-    return new DefaultEventLooptChooser(loops);
+    return new DefaultEventLoopChooser(loops);
   }
 
-  private static final class DefaultEventLooptChooser implements EventLoopChooser {
+  private static final class DefaultEventLoopChooser implements EventLoopChooser {
 
     private final List<EventLoop> loops;
 
-    private DefaultEventLooptChooser(List<EventLoop> loops) {
+    private DefaultEventLoopChooser(List<EventLoop> loops) {
       this.loops = loops;
     }
 

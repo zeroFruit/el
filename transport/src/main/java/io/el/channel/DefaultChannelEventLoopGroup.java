@@ -10,18 +10,22 @@ import java.util.concurrent.TimeUnit;
 public class DefaultChannelEventLoopGroup extends AbstractEventLoopGroup
     implements ChannelEventLoopGroup {
 
+  public DefaultChannelEventLoopGroup(int nThreads) {
+    super(nThreads, null, null);
+  }
+
   /**
    * * Create {@link ChannelEventLoop} children with size of {@param maxChannels}, then add chooser
    * with {@param chooserFactory}
    *
-   * @param maxChannels
+   * @param nThreads
    * @param executor
    * @param chooserFactory
    */
   public DefaultChannelEventLoopGroup(
-      int maxChannels, Executor executor, EventLoopChooserFactory chooserFactory) {
+      int nThreads, Executor executor, EventLoopChooserFactory chooserFactory) {
     // TODO: change after chooser factory implemented
-    super(maxChannels, executor, chooserFactory);
+    super(nThreads, executor, chooserFactory);
   }
 
   @Override

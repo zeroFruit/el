@@ -197,7 +197,7 @@ public class AbstractChannelTests {
     }
 
     @Override
-    protected void register() {
+    protected void doRegister() {
       // NO-OP
     }
 

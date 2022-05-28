@@ -51,10 +51,6 @@ public abstract class AbstractChannel implements Channel {
     return channelEventLoop;
   }
 
-  private void registerEventLoop(ChannelEventLoop eventLoop) {
-    this.channelEventLoop = eventLoop;
-  }
-
   @Override
   public SocketAddress localAddress() {
     return internal().localAddress();
@@ -65,7 +61,7 @@ public abstract class AbstractChannel implements Channel {
     return internal().remoteAddress();
   }
 
-  protected abstract void register();
+  protected abstract void doRegister();
 
   @Override
   public ChannelPromise bind(SocketAddress localAddress) {
@@ -92,7 +88,7 @@ public abstract class AbstractChannel implements Channel {
         promise.setFailure(new IllegalStateException("already registered to a channel event loop"));
         return;
       }
-      registerEventLoop(eventLoop);
+      AbstractChannel.this.channelEventLoop = eventLoop;
 
       if (eventLoop.inEventLoop()) {
         doRegister(promise);
@@ -110,7 +106,7 @@ public abstract class AbstractChannel implements Channel {
       try {
         registered = true;
         pipeline.fireChannelRegistered();
-        AbstractChannel.this.register();
+        AbstractChannel.this.doRegister();
         promise.setSuccess(null);
       } catch (Throwable t) {
         // TODO: logging, error handling

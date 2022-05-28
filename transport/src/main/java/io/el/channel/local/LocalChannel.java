@@ -34,7 +34,7 @@ public class LocalChannel extends AbstractChannel {
   }
 
   @Override
-  protected AbstractInternal newInternal() {
+  protected LocalInternal newInternal() {
     return new LocalInternal();
   }
 
@@ -59,14 +59,6 @@ public class LocalChannel extends AbstractChannel {
     return state == State.CONNECTED;
   }
 
-  private void setLocalAddress(LocalAddress localAddress) {
-    this.localAddress = localAddress;
-  }
-
-  private LocalChannel localChannel() {
-    return this;
-  }
-
   private class LocalInternal extends AbstractInternal {
 
     @Override
@@ -87,7 +79,8 @@ public class LocalChannel extends AbstractChannel {
     @Override
     public void doBind(SocketAddress localAddress) {
       ObjectUtil.checkNotNull(localAddress(), "already bound");
-      setLocalAddress(LocalChannelRegistry.register(localChannel(), localAddress));
+      LocalChannel.this.localAddress =
+          LocalChannelRegistry.register(LocalChannel.this, localAddress);
       state = State.BOUND;
     }
   }

@@ -18,8 +18,8 @@ public class LocalServerChannel extends AbstractServerChannel {
   }
 
   @Override
-  protected AbstractInternal newInternal() {
-    return null;
+  protected LocalServerInternal newInternal() {
+    return new LocalServerInternal();
   }
 
   @Override
@@ -39,24 +39,16 @@ public class LocalServerChannel extends AbstractServerChannel {
 
   @Override
   public boolean isOpen() {
-    return false;
+    return state != State.CLOSED;
   }
 
   @Override
   public boolean isActive() {
-    return false;
+    return state == State.CONNECTED;
   }
 
   protected LocalChannel newLocalChannel(ChannelId id, LocalChannel peer) {
     return new LocalChannel(id, this, peer);
-  }
-
-  private void setLocalAddress(LocalAddress localAddress) {
-    this.localAddress = localAddress;
-  }
-
-  private LocalServerChannel localServerChannel() {
-    return this;
   }
 
   private class LocalServerInternal extends AbstractInternal {
@@ -80,7 +72,8 @@ public class LocalServerChannel extends AbstractServerChannel {
     @Override
     public void doBind(SocketAddress localAddress) {
       ObjectUtil.checkNotNull(localAddress(), "already bound");
-      setLocalAddress(LocalChannelRegistry.register(localServerChannel(), localAddress));
+      LocalServerChannel.this.localAddress =
+          LocalChannelRegistry.register(LocalServerChannel.this, localAddress);
       state = State.BOUND;
     }
   }

@@ -8,6 +8,7 @@ import static org.mockito.Mockito.when;
 import java.net.SocketAddress;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
+import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
@@ -63,7 +64,7 @@ public class AbstractChannelTests {
               if (cause instanceof TestException) {
                 latch.countDown();
               } else {
-                System.err.println("unknown exception " + cause);
+                Assertions.fail();
               }
             }
           };

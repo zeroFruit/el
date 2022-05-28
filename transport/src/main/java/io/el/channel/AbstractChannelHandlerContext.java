@@ -8,16 +8,18 @@ import io.el.concurrent.EventLoop;
 import io.el.internal.ObjectUtil;
 import java.net.SocketAddress;
 
-abstract public class AbstractChannelHandlerContext implements ChannelHandlerContext {
+public abstract class AbstractChannelHandlerContext implements ChannelHandlerContext {
 
   /**
-   * {@link ChannelHandlerContext} of the next {@link ChannelHandler} contained in the {@link ChannelPipeline}
-   * */
+   * {@link ChannelHandlerContext} of the next {@link ChannelHandler} contained in the {@link
+   * ChannelPipeline}
+   */
   volatile AbstractChannelHandlerContext next;
 
   /**
-   * {@link ChannelHandlerContext} of the previous {@link ChannelHandler} contained in the {@link ChannelPipeline}
-   * */
+   * {@link ChannelHandlerContext} of the previous {@link ChannelHandler} contained in the {@link
+   * ChannelPipeline}
+   */
   volatile AbstractChannelHandlerContext prev;
 
   private final ChannelPipeline pipeline;
@@ -25,7 +27,10 @@ abstract public class AbstractChannelHandlerContext implements ChannelHandlerCon
   private final int executionFlag;
   final EventLoop eventLoop;
 
-  AbstractChannelHandlerContext(String name, ChannelPipeline pipeline, EventLoop eventLoop,
+  AbstractChannelHandlerContext(
+      String name,
+      ChannelPipeline pipeline,
+      EventLoop eventLoop,
       Class<? extends ChannelHandler> handlerClass) {
     this.name = ObjectUtil.checkNotNull(name, "name");
     this.pipeline = pipeline;
@@ -42,7 +47,8 @@ abstract public class AbstractChannelHandlerContext implements ChannelHandlerCon
     }
   }
 
-  static void invokeExceptionCaught(final AbstractChannelHandlerContext next, final Throwable cause) {
+  static void invokeExceptionCaught(
+      final AbstractChannelHandlerContext next, final Throwable cause) {
     ObjectUtil.checkNotNull(cause, "cause");
     EventLoop eventLoop = next.eventLoop();
     if (eventLoop.inEventLoop()) {
@@ -141,9 +147,12 @@ abstract public class AbstractChannelHandlerContext implements ChannelHandlerCon
     if (eventLoop.inEventLoop()) {
       next.invokeBind(localAddress, promise);
     } else {
-      safeExecute(eventLoop, () -> {
-        next.invokeBind(localAddress, promise);
-      }, promise);
+      safeExecute(
+          eventLoop,
+          () -> {
+            next.invokeBind(localAddress, promise);
+          },
+          promise);
     }
     return promise;
   }
@@ -156,8 +165,8 @@ abstract public class AbstractChannelHandlerContext implements ChannelHandlerCon
     }
   }
 
-  private static boolean safeExecute(EventLoop eventLoop, Runnable runnable,
-      ChannelPromise promise) {
+  private static boolean safeExecute(
+      EventLoop eventLoop, Runnable runnable, ChannelPromise promise) {
     try {
       eventLoop.execute(runnable);
       return true;
@@ -182,9 +191,9 @@ abstract public class AbstractChannelHandlerContext implements ChannelHandlerCon
     // If the promise.channel is not the same as the ChannelHandlerContext, the listeners
     // will receive a wrong channel that is not related to the event.
     if (promise.channel() != channel()) {
-      throw new IllegalArgumentException(String.format(
-          "promise.channel does not match: %s (expected: %s)", promise.channel(), channel()
-      ));
+      throw new IllegalArgumentException(
+          String.format(
+              "promise.channel does not match: %s (expected: %s)", promise.channel(), channel()));
     }
 
     if (promise.getClass() == DefaultChannelPromise.class) {
@@ -194,7 +203,9 @@ abstract public class AbstractChannelHandlerContext implements ChannelHandlerCon
   }
 
   @Override
-  public ChannelPromise connect(SocketAddress remoteAddress, SocketAddress localAddress,
+  public ChannelPromise connect(
+      SocketAddress remoteAddress,
+      SocketAddress localAddress,
       // TODO: implement me
       ChannelPromise promise) {
     return null;

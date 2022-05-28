@@ -4,9 +4,7 @@ import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.TimeUnit;
 
-/**
- * A {@code EventLoop} represents the runner for running asynchronous computation
- */
+/** A {@code EventLoop} represents the runner for running asynchronous computation */
 public interface EventLoop extends ExecutorService {
 
   /**

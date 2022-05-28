@@ -8,3 +8,7 @@ version '1.0-SNAPSHOT'
 repositories {
     mavenCentral()
 }
+
+dependencies {
+    implementation "com.google.googlejavaformat:google-java-format:1.15.0"
+}

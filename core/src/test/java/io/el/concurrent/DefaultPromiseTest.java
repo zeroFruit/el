@@ -26,7 +26,7 @@ import org.junit.jupiter.api.Test;
 @SuppressWarnings("unchecked")
 public class DefaultPromiseTest {
 
-  private final static Runnable NOOP = () -> {};
+  private static final Runnable NOOP = () -> {};
 
   private final EventLoop eventLoop = mock(EventLoop.class);
 
@@ -79,10 +79,12 @@ public class DefaultPromiseTest {
     @Test
     @DisplayName("when timeout negative, then throws exception")
     public void testTimeoutNegative() {
-      assertThrows(IllegalArgumentException.class, () -> {
-        Promise<String> promise = new TestPromise<>(eventLoop, NOOP);
-        promise.await(-1, TimeUnit.SECONDS);
-      });
+      assertThrows(
+          IllegalArgumentException.class,
+          () -> {
+            Promise<String> promise = new TestPromise<>(eventLoop, NOOP);
+            promise.await(-1, TimeUnit.SECONDS);
+          });
     }
 
     @Test
@@ -96,121 +98,140 @@ public class DefaultPromiseTest {
     @Test
     @DisplayName("When task done within timeout, then success")
     public void testTaskDoneWithinTimeout() {
-      assertTimeout(Duration.ofSeconds(1), () -> {
-        CountDownLatch latch = new CountDownLatch(1);
-        Promise<String> promise = new TestPromise<>(eventLoop, NOOP);
-        Thread t1 = new Thread(() -> {
-          try {
-            assertTrue(promise.await(500, TimeUnit.MILLISECONDS).isDone());
-            latch.countDown();
-          } catch (InterruptedException e) {
-            fail();
-          }
-        });
-        Thread t2 = new Thread(() -> {
-          try {
-            Thread.sleep(100);
-            promise.setSuccess("result");
-          } catch (InterruptedException e) {
-            fail();
-          }
-        });
-        t1.start();
-        t2.start();
-        latch.await();
-        assertTrue(promise.isSuccess());
-      });
+      assertTimeout(
+          Duration.ofSeconds(1),
+          () -> {
+            CountDownLatch latch = new CountDownLatch(1);
+            Promise<String> promise = new TestPromise<>(eventLoop, NOOP);
+            Thread t1 =
+                new Thread(
+                    () -> {
+                      try {
+                        assertTrue(promise.await(500, TimeUnit.MILLISECONDS).isDone());
+                        latch.countDown();
+                      } catch (InterruptedException e) {
+                        fail();
+                      }
+                    });
+            Thread t2 =
+                new Thread(
+                    () -> {
+                      try {
+                        Thread.sleep(100);
+                        promise.setSuccess("result");
+                      } catch (InterruptedException e) {
+                        fail();
+                      }
+                    });
+            t1.start();
+            t2.start();
+            latch.await();
+            assertTrue(promise.isSuccess());
+          });
     }
 
     @Test
     @DisplayName("When task success within timeout, then success")
     public void testTaskSuccessWithinTimeout() {
-      onTimeTestTemplate(new TaskTimeoutTester<String>() {
+      onTimeTestTemplate(
+          new TaskTimeoutTester<String>() {
 
-        @Override
-        public void test(Promise<String> promise) {
-          promise.setSuccess("result");
-        }
+            @Override
+            public void test(Promise<String> promise) {
+              promise.setSuccess("result");
+            }
 
-        @Override
-        public boolean expected() {
-          return true;
-        }
-      });
+            @Override
+            public boolean expected() {
+              return true;
+            }
+          });
     }
 
     @Test
     @DisplayName("When task failed within timeout, then failed")
     public void testTaskFailedWithinTimeout() {
-      onTimeTestTemplate(new TaskTimeoutTester() {
-        @Override
-        public void test(Promise promise) {
-          promise.setFailure(new RuntimeException());
-        }
+      onTimeTestTemplate(
+          new TaskTimeoutTester() {
+            @Override
+            public void test(Promise promise) {
+              promise.setFailure(new RuntimeException());
+            }
 
-        @Override
-        public boolean expected() {
-          return false;
-        }
-      });
+            @Override
+            public boolean expected() {
+              return false;
+            }
+          });
     }
 
     private void onTimeTestTemplate(TaskTimeoutTester tester) {
-      assertTimeout(Duration.ofSeconds(1), () -> {
-        CountDownLatch latch = new CountDownLatch(1);
-        Promise<String> promise = new TestPromise<>(eventLoop, NOOP);
-        Thread t1 = new Thread(() -> {
-          try {
-            promise.await();
-          } catch (InterruptedException e) {
-            fail();
-          } finally {
-            latch.countDown();
-          }
-        });
-        Thread t2 = new Thread(() -> {
-          try {
-            Thread.sleep(100);
-            tester.test(promise);
-          } catch (InterruptedException e) {
-            fail();
-          }
-        });
-        t1.start();
-        t2.start();
-        latch.await();
-        assertEquals(promise.isSuccess(), tester.expected());
-      });
+      assertTimeout(
+          Duration.ofSeconds(1),
+          () -> {
+            CountDownLatch latch = new CountDownLatch(1);
+            Promise<String> promise = new TestPromise<>(eventLoop, NOOP);
+            Thread t1 =
+                new Thread(
+                    () -> {
+                      try {
+                        promise.await();
+                      } catch (InterruptedException e) {
+                        fail();
+                      } finally {
+                        latch.countDown();
+                      }
+                    });
+            Thread t2 =
+                new Thread(
+                    () -> {
+                      try {
+                        Thread.sleep(100);
+                        tester.test(promise);
+                      } catch (InterruptedException e) {
+                        fail();
+                      }
+                    });
+            t1.start();
+            t2.start();
+            latch.await();
+            assertEquals(promise.isSuccess(), tester.expected());
+          });
     }
 
     @Test
     @DisplayName("When task not done within timeout, then fail")
     public void testTaskTimeout() {
-      assertTimeout(Duration.ofSeconds(1), () -> {
-        CountDownLatch latch = new CountDownLatch(1);
-        Promise<String> promise = new TestPromise<>(eventLoop, NOOP);
-        Thread t1 = new Thread(() -> {
-          try {
-            assertFalse(promise.await(100, TimeUnit.MILLISECONDS).isDone());
-            latch.countDown();
-          } catch (InterruptedException e) {
-            fail();
-          }
-        });
-        Thread t2 = new Thread(() -> {
-          try {
-            Thread.sleep(500);
-          } catch (InterruptedException e) {
-            fail();
-          }
-        });
-        t1.start();
-        t2.start();
-        latch.await();
-        assertFalse(promise.isSuccess());
-      });
+      assertTimeout(
+          Duration.ofSeconds(1),
+          () -> {
+            CountDownLatch latch = new CountDownLatch(1);
+            Promise<String> promise = new TestPromise<>(eventLoop, NOOP);
+            Thread t1 =
+                new Thread(
+                    () -> {
+                      try {
+                        assertFalse(promise.await(100, TimeUnit.MILLISECONDS).isDone());
+                        latch.countDown();
+                      } catch (InterruptedException e) {
+                        fail();
+                      }
+                    });
+            Thread t2 =
+                new Thread(
+                    () -> {
+                      try {
+                        Thread.sleep(500);
+                      } catch (InterruptedException e) {
+                        fail();
+                      }
+                    });
+            t1.start();
+            t2.start();
+            latch.await();
+            assertFalse(promise.isSuccess());
+          });
     }
-
   }
 
   @Nested
@@ -222,10 +243,12 @@ public class DefaultPromiseTest {
     public void testFailed() {
       Promise<String> promise = new TestPromise<>(eventLoop, NOOP);
 
-      assertThrows(ExecutionException.class, () -> {
-        promise.setFailure(new IllegalArgumentException());
-        promise.get();
-      });
+      assertThrows(
+          ExecutionException.class,
+          () -> {
+            promise.setFailure(new IllegalArgumentException());
+            promise.get();
+          });
     }
 
     @Test
@@ -242,9 +265,11 @@ public class DefaultPromiseTest {
     public void testTimeout() {
       Promise<String> promise = new TestPromise<>(eventLoop, NOOP);
 
-      assertThrows(TimeoutException.class, () -> {
-        promise.get(100, TimeUnit.MILLISECONDS);
-      });
+      assertThrows(
+          TimeoutException.class,
+          () -> {
+            promise.get(100, TimeUnit.MILLISECONDS);
+          });
     }
   }
 }

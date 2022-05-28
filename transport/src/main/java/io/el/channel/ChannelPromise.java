@@ -5,9 +5,7 @@ import io.el.concurrent.PromiseListener;
 
 public interface ChannelPromise extends Promise<Void> {
 
-  /**
-   * Return the {@link Channel} it related with
-   * */
+  /** Return the {@link Channel} it related with */
   Channel channel();
 
   @Override

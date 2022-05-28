@@ -3,33 +3,23 @@ package io.el.channel;
 import io.el.concurrent.AbstractEventLoopGroup;
 import io.el.concurrent.EventLoop;
 import io.el.concurrent.EventLoopChooserFactory;
-import io.el.concurrent.Promise;
-import java.util.Collection;
-import java.util.Iterator;
-import java.util.List;
-import java.util.concurrent.Callable;
-import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Executor;
-import java.util.concurrent.Future;
 import java.util.concurrent.ThreadFactory;
 import java.util.concurrent.TimeUnit;
-import java.util.concurrent.TimeoutException;
 
-public class DefaultChannelEventLoopGroup extends AbstractEventLoopGroup implements
-    ChannelEventLoopGroup {
+public class DefaultChannelEventLoopGroup extends AbstractEventLoopGroup
+    implements ChannelEventLoopGroup {
 
-  /***
-   * Create {@link ChannelEventLoop} children with size of {@param maxChannels},
-   * then add chooser with {@param chooserFactory}
+  /**
+   * * Create {@link ChannelEventLoop} children with size of {@param maxChannels}, then add chooser
+   * with {@param chooserFactory}
+   *
    * @param maxChannels
    * @param executor
    * @param chooserFactory
    */
   public DefaultChannelEventLoopGroup(
-      int maxChannels,
-      Executor executor,
-      EventLoopChooserFactory chooserFactory
-  ) {
+      int maxChannels, Executor executor, EventLoopChooserFactory chooserFactory) {
     // TODO: change after chooser factory implemented
     super(maxChannels, executor, chooserFactory);
   }

@@ -7,8 +7,9 @@ import java.util.concurrent.TimeUnit;
 
 public interface EventLoopGroup extends ExecutorService, Iterable<EventLoop> {
   /**
-   * Returns one of its EventLoop it manages. Usually it depends on the {@link io.el.concurrent.EventLoopChooserFactory.EventLoopChooser}
-   * */
+   * Returns one of its EventLoop it manages. Usually it depends on the {@link
+   * io.el.concurrent.EventLoopChooserFactory.EventLoopChooser}
+   */
   EventLoop next();
 
   @Override
@@ -18,7 +19,7 @@ public interface EventLoopGroup extends ExecutorService, Iterable<EventLoop> {
    * Attempts to terminate all children, which are event loop lists.
    *
    * @return {@code true} if none of {@link EventLoop}s terminates without exception.
-   * */
+   */
   boolean shutdownGracefully(long timeout, TimeUnit unit);
 
   /**
@@ -28,15 +29,11 @@ public interface EventLoopGroup extends ExecutorService, Iterable<EventLoop> {
    */
   boolean isShuttingDown();
 
-  /**
-  * Submit task to one of its EventLoop. {@link EventLoopGroup} just delegate task it receive.
-  * */
+  /** Submit task to one of its EventLoop. {@link EventLoopGroup} just delegate task it receive. */
   @Override
   <V> Promise<V> submit(Callable<V> task);
 
-  /**
-   * Submit task to one of its EventLoop. {@link EventLoopGroup} just delegate task it receive.
-   * */
+  /** Submit task to one of its EventLoop. {@link EventLoopGroup} just delegate task it receive. */
   @Override
   Promise<?> submit(Runnable task);
 }

@@ -113,19 +113,18 @@ public class SingleThreadEventLoopTest {
     }
   }
 
-  private final SingleThreadEventLoop eventLoop = new SingleThreadEventLoop(
-      new ThreadPerTaskExecutor(Executors.defaultThreadFactory())
-  ) {
-    @Override
-    protected void run() {
-      while (!confirmShutdown()) {
-        Runnable task = takeTask();
-        if (task != null) {
-          task.run();
+  private final SingleThreadEventLoop eventLoop =
+      new SingleThreadEventLoop(new ThreadPerTaskExecutor(Executors.defaultThreadFactory())) {
+        @Override
+        protected void run() {
+          while (!confirmShutdown()) {
+            Runnable task = takeTask();
+            if (task != null) {
+              task.run();
+            }
+          }
         }
-      }
-    }
-  };
+      };
 
   @Nested
   @DisplayName("On takeTask() method")
@@ -137,54 +136,59 @@ public class SingleThreadEventLoopTest {
       CountDownLatch LATCH = new CountDownLatch(3);
       AtomicInteger ORDER = new AtomicInteger(0);
 
-      assertTimeout(Duration.ofSeconds(1), () -> {
-        try {
-          TestTask task1 = new TestTask(LATCH, ORDER);
-          eventLoop.execute(task1);
+      assertTimeout(
+          Duration.ofSeconds(1),
+          () -> {
+            try {
+              TestTask task1 = new TestTask(LATCH, ORDER);
+              eventLoop.execute(task1);
 
-          TestTask task2 = new TestTask(LATCH, ORDER);
-          eventLoop.schedule(task2, 200, TimeUnit.MILLISECONDS);
+              TestTask task2 = new TestTask(LATCH, ORDER);
+              eventLoop.schedule(task2, 200, TimeUnit.MILLISECONDS);
 
-          TestTask task3 = new TestTask(LATCH, ORDER);
-          eventLoop.execute(task3);
+              TestTask task3 = new TestTask(LATCH, ORDER);
+              eventLoop.execute(task3);
 
-          LATCH.await();
+              LATCH.await();
 
-          assertEquals(task1.order, 1);
-          assertEquals(task2.order, 3);
-          assertEquals(task3.order, 2);
-        } finally {
-          eventLoop.shutdownGracefully(0L, TimeUnit.MILLISECONDS);
-        }
-      });
+              assertEquals(task1.order, 1);
+              assertEquals(task2.order, 3);
+              assertEquals(task3.order, 2);
+            } finally {
+              eventLoop.shutdownGracefully(0L, TimeUnit.MILLISECONDS);
+            }
+          });
     }
 
     @Test
-    @DisplayName("When EventLoop is given multiple scheduled tasks, then handle them in proper order")
+    @DisplayName(
+        "When EventLoop is given multiple scheduled tasks, then handle them in proper order")
     public void runScheduledTasks() {
       CountDownLatch LATCH = new CountDownLatch(3);
       AtomicInteger ORDER = new AtomicInteger(0);
 
-      assertTimeout(Duration.ofSeconds(1), () -> {
-        try {
-          TestTask task1 = new TestTask(LATCH, ORDER);
-          eventLoop.schedule(task1, 600, TimeUnit.MILLISECONDS);
+      assertTimeout(
+          Duration.ofSeconds(1),
+          () -> {
+            try {
+              TestTask task1 = new TestTask(LATCH, ORDER);
+              eventLoop.schedule(task1, 600, TimeUnit.MILLISECONDS);
 
-          TestTask task2 = new TestTask(LATCH, ORDER);
-          eventLoop.schedule(task2, 200, TimeUnit.MILLISECONDS);
+              TestTask task2 = new TestTask(LATCH, ORDER);
+              eventLoop.schedule(task2, 200, TimeUnit.MILLISECONDS);
 
-          TestTask task3 = new TestTask(LATCH, ORDER);
-          eventLoop.schedule(task3, 400, TimeUnit.MILLISECONDS);
+              TestTask task3 = new TestTask(LATCH, ORDER);
+              eventLoop.schedule(task3, 400, TimeUnit.MILLISECONDS);
 
-          LATCH.await();
+              LATCH.await();
 
-          assertEquals(task1.order, 3);
-          assertEquals(task2.order, 1);
-          assertEquals(task3.order, 2);
-        } finally {
-          eventLoop.shutdownGracefully(0L, TimeUnit.MILLISECONDS);
-        }
-      });
+              assertEquals(task1.order, 3);
+              assertEquals(task2.order, 1);
+              assertEquals(task3.order, 2);
+            } finally {
+              eventLoop.shutdownGracefully(0L, TimeUnit.MILLISECONDS);
+            }
+          });
     }
 
     @Test
@@ -192,11 +196,13 @@ public class SingleThreadEventLoopTest {
     public void runCallable() {
       AtomicInteger ORDER = new AtomicInteger(0);
 
-      assertTimeout(Duration.ofSeconds(1), () -> {
-        TestCallableTask task = new TestCallableTask(ORDER, 1);
-        Promise<Integer> promise = eventLoop.submit(task).await();
-        assertEquals(promise.get().intValue(), 1);
-      });
+      assertTimeout(
+          Duration.ofSeconds(1),
+          () -> {
+            TestCallableTask task = new TestCallableTask(ORDER, 1);
+            Promise<Integer> promise = eventLoop.submit(task).await();
+            assertEquals(promise.get().intValue(), 1);
+          });
     }
 
     @Test
@@ -204,51 +210,54 @@ public class SingleThreadEventLoopTest {
     public void scheduleCallables() {
       AtomicInteger ORDER = new AtomicInteger(0);
 
-      assertTimeout(Duration.ofSeconds(1), () -> {
-        TestCallableTask task1 = new TestCallableTask(ORDER, 1);
-        Promise<Integer> promise1 = eventLoop.schedule(task1, 400, TimeUnit.MILLISECONDS);
+      assertTimeout(
+          Duration.ofSeconds(1),
+          () -> {
+            TestCallableTask task1 = new TestCallableTask(ORDER, 1);
+            Promise<Integer> promise1 = eventLoop.schedule(task1, 400, TimeUnit.MILLISECONDS);
 
-        TestCallableTask task2 = new TestCallableTask(ORDER, 2);
-        Promise<Integer> promise2 = eventLoop.schedule(task2, 200, TimeUnit.MILLISECONDS);
+            TestCallableTask task2 = new TestCallableTask(ORDER, 2);
+            Promise<Integer> promise2 = eventLoop.schedule(task2, 200, TimeUnit.MILLISECONDS);
 
-        Thread.sleep(500);
+            Thread.sleep(500);
 
-        assertTrue(promise1.isSuccess());
-        assertTrue(promise2.isSuccess());
-        assertEquals(promise1.get().intValue(), 1);
-        assertEquals(promise2.get().intValue(), 2);
-        assertEquals(task1.order, 2);
-        assertEquals(task2.order, 1);
-      });
+            assertTrue(promise1.isSuccess());
+            assertTrue(promise2.isSuccess());
+            assertEquals(promise1.get().intValue(), 1);
+            assertEquals(promise2.get().intValue(), 2);
+            assertEquals(task1.order, 2);
+            assertEquals(task2.order, 1);
+          });
     }
 
     /**
      * `task1` and `task2` are scheduled with the same delay. In this case because `task1` is
-     * scheduled first, it enqueues into TaskQueue before `task2`.
-     * And because `SingleThreadEventLoop` executes task by single task, it waits until `task1`
-     * finish.
-     * */
+     * scheduled first, it enqueues into TaskQueue before `task2`. And because
+     * `SingleThreadEventLoop` executes task by single task, it waits until `task1` finish.
+     */
     @Test
     @DisplayName("When EventLoop schedules Callables, then return result in order")
     public void scheduleTimeTakingCallables() {
       AtomicInteger ORDER = new AtomicInteger(0);
 
-      assertTimeout(Duration.ofSeconds(1), () -> {
-        TimeTakingCallableTask task1 = new TimeTakingCallableTask(ORDER, 400, 1);
-        Promise<Integer> promise1 = eventLoop.schedule(task1, 100, TimeUnit.MILLISECONDS);
+      assertTimeout(
+          Duration.ofSeconds(1),
+          () -> {
+            TimeTakingCallableTask task1 = new TimeTakingCallableTask(ORDER, 400, 1);
+            Promise<Integer> promise1 = eventLoop.schedule(task1, 100, TimeUnit.MILLISECONDS);
 
-        TimeTakingCallableTask task2 = new TimeTakingCallableTask(ORDER, 200, 2);
-        Promise<Integer> promise2 = eventLoop.schedule(task2, 100, TimeUnit.MILLISECONDS);
+            TimeTakingCallableTask task2 = new TimeTakingCallableTask(ORDER, 200, 2);
+            Promise<Integer> promise2 = eventLoop.schedule(task2, 100, TimeUnit.MILLISECONDS);
 
-        Thread.sleep(800);
+            Thread.sleep(800);
 
-        assertTrue(promise1.isSuccess());
-        assertTrue(promise2.isSuccess());
-        assertEquals(promise1.get().intValue(), 1);
-        assertEquals(promise2.get().intValue(), 2);
-        assertEquals(task1.order, 1);
-        assertEquals(task2.order, 2);
-      });
+            assertTrue(promise1.isSuccess());
+            assertTrue(promise2.isSuccess());
+            assertEquals(promise1.get().intValue(), 1);
+            assertEquals(promise2.get().intValue(), 2);
+            assertEquals(task1.order, 1);
+            assertEquals(task2.order, 2);
+          });
     }
   }
 
@@ -262,23 +271,26 @@ public class SingleThreadEventLoopTest {
       CountDownLatch LATCH = new CountDownLatch(1);
       AtomicInteger ORDER = new AtomicInteger(0);
 
-      assertThrows(RejectedExecutionException.class, () -> {
-        try {
-          eventLoop.execute(new TestTask(LATCH, ORDER));
+      assertThrows(
+          RejectedExecutionException.class,
+          () -> {
+            try {
+              eventLoop.execute(new TestTask(LATCH, ORDER));
 
-          LATCH.await();
+              LATCH.await();
 
-          assertTrue(eventLoop.shutdownGracefully(0L, TimeUnit.MILLISECONDS));
+              assertTrue(eventLoop.shutdownGracefully(0L, TimeUnit.MILLISECONDS));
 
-          eventLoop.execute(new TestTask(ORDER));
-        } finally {
-          eventLoop.shutdownGracefully(0L, TimeUnit.MILLISECONDS);
-        }
-      });
+              eventLoop.execute(new TestTask(ORDER));
+            } finally {
+              eventLoop.shutdownGracefully(0L, TimeUnit.MILLISECONDS);
+            }
+          });
     }
 
     @Test
-    @DisplayName("When EventLoop shutdownGracefully, then before timeout, its state is not SHUTDOWN")
+    @DisplayName(
+        "When EventLoop shutdownGracefully, then before timeout, its state is not SHUTDOWN")
     public void testShutdown() throws InterruptedException {
       try {
         assertTrue(eventLoop.shutdownGracefully(200, TimeUnit.MILLISECONDS));
@@ -298,7 +310,8 @@ public class SingleThreadEventLoopTest {
 
       try {
         // Although task1 is scheduled to run after 100ms (which is < 200ms), event loop updates its
-        // state into SHUTTING_DOWN right after calling shutdownGracefully() and remove all scheduled
+        // state into SHUTTING_DOWN right after calling shutdownGracefully() and remove all
+        // scheduled
         // tasks. So task1 is not running.
         TestTask task1 = new TestTask(ORDER);
         ScheduledPromise scheduledPromise1 = eventLoop.schedule(task1, 100, TimeUnit.MILLISECONDS);

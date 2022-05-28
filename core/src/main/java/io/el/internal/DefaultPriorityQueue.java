@@ -8,8 +8,8 @@ import java.util.Comparator;
 import java.util.Iterator;
 import java.util.NoSuchElementException;
 
-public class DefaultPriorityQueue<T extends PriorityQueueNode> extends AbstractQueue<T> implements
-    PriorityQueue<T> {
+public class DefaultPriorityQueue<T extends PriorityQueueNode> extends AbstractQueue<T>
+    implements PriorityQueue<T> {
 
   private static final PriorityQueueNode[] EMPTY_ARRAY = new PriorityQueueNode[0];
 
@@ -41,11 +41,13 @@ public class DefaultPriorityQueue<T extends PriorityQueueNode> extends AbstractQ
     }
     // Check that the array capacity is enough to hold values by doubling capacity.
     if (size >= items.length) {
-      // Use a policy which allows for a 0 initial capacity. Same policy as JDK's priority queue, double when
+      // Use a policy which allows for a 0 initial capacity. Same policy as JDK's priority queue,
+      // double when
       // "small", then grow by 50% when "large".
-      items = Arrays.copyOf(items, items.length + ((items.length < 64) ?
-          (items.length + 2) :
-          (items.length >>> 1)));
+      items =
+          Arrays.copyOf(
+              items,
+              items.length + ((items.length < 64) ? (items.length + 2) : (items.length >>> 1)));
     }
 
     items[size] = node;

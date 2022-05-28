@@ -8,13 +8,10 @@ import java.util.Collection;
 import java.util.Iterator;
 import java.util.List;
 import java.util.concurrent.Callable;
-import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Executor;
 import java.util.concurrent.Future;
 import java.util.concurrent.ThreadFactory;
 import java.util.concurrent.TimeUnit;
-import java.util.concurrent.TimeoutException;
-
 
 public abstract class AbstractEventLoopGroup implements EventLoopGroup {
 
@@ -22,15 +19,12 @@ public abstract class AbstractEventLoopGroup implements EventLoopGroup {
   private final List<EventLoop> children;
   private final EventLoopChooser chooser;
 
-  /***
-   * Create {@link EventLoop} children with size of {@param nThreads},
-   * then add chooser with {@param chooserFactory}
+  /**
+   * * Create {@link EventLoop} children with size of {@param nThreads}, then add chooser with
+   * {@param chooserFactory}
    */
   protected AbstractEventLoopGroup(
-      int nThreads,
-      Executor executor,
-      EventLoopChooserFactory chooserFactory
-  ) {
+      int nThreads, Executor executor, EventLoopChooserFactory chooserFactory) {
     checkPositive(nThreads, "nThreads");
 
     if (executor == null) {
@@ -45,15 +39,16 @@ public abstract class AbstractEventLoopGroup implements EventLoopGroup {
         for (int j = 0; j < i; j++) {
           this.children.get(j).shutdownGracefully(DEFAULT_TIMEOUT, TimeUnit.SECONDS);
         }
-        this.children.forEach(child -> {
-          try {
-            while (!child.isTerminated()) {
-              child.awaitTermination(DEFAULT_TIMEOUT, TimeUnit.SECONDS);
-            }
-          } catch (InterruptedException interrupted) {
-            Thread.currentThread().interrupt();
-          }
-        });
+        this.children.forEach(
+            child -> {
+              try {
+                while (!child.isTerminated()) {
+                  child.awaitTermination(DEFAULT_TIMEOUT, TimeUnit.SECONDS);
+                }
+              } catch (InterruptedException interrupted) {
+                Thread.currentThread().interrupt();
+              }
+            });
         throw new IllegalStateException("failed to create a child event loop", e);
       }
     }
@@ -111,9 +106,7 @@ public abstract class AbstractEventLoopGroup implements EventLoopGroup {
         .orElse(true);
   }
 
-  /***
-   * Wait until every child {@link EventLoop} terminated through while-loop
-   */
+  /** * Wait until every child {@link EventLoop} terminated through while-loop */
   @Override
   public boolean awaitTermination(long timeout, TimeUnit unit) throws InterruptedException {
     long deadline = System.nanoTime() + unit.toNanos(timeout);
@@ -165,8 +158,8 @@ public abstract class AbstractEventLoopGroup implements EventLoopGroup {
   }
 
   @Override
-  public <T> List<Future<T>> invokeAll(Collection<? extends Callable<T>> tasks, long timeout,
-      TimeUnit unit) {
+  public <T> List<Future<T>> invokeAll(
+      Collection<? extends Callable<T>> tasks, long timeout, TimeUnit unit) {
     throw new UnsupportedOperationException();
   }
 

@@ -10,12 +10,7 @@ public abstract class AbstractServerChannel extends AbstractChannel {
 
   @Override
   public SocketAddress remoteAddress() {
-    return null;
-  }
-
-  @Override
-  protected AbstractInternal newInternal() {
-    return null;
+    return internal().remoteAddress();
   }
 
   private abstract class AbstractServerInternal extends AbstractInternal {

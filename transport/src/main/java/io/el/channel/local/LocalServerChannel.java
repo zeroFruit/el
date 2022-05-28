@@ -2,6 +2,7 @@ package io.el.channel.local;
 
 import io.el.channel.AbstractServerChannel;
 import io.el.channel.ChannelId;
+import java.net.SocketAddress;
 
 public class LocalServerChannel extends AbstractServerChannel {
 
@@ -10,6 +11,11 @@ public class LocalServerChannel extends AbstractServerChannel {
 
   protected LocalServerChannel(ChannelId id) {
     super(id);
+  }
+
+  @Override
+  protected AbstractInternal newInternal() {
+    return null;
   }
 
   @Override
@@ -39,5 +45,19 @@ public class LocalServerChannel extends AbstractServerChannel {
 
   protected LocalChannel newLocalChannel(ChannelId id, LocalChannel peer) {
     return new LocalChannel(id, this, peer);
+  }
+
+  private class LocalServerInternal extends AbstractInternal {
+
+    @Override
+    public SocketAddress localAddress() {
+      return localAddress;
+    }
+
+    @Override
+    public SocketAddress remoteAddress() {
+      // local server channel has no remote address
+      return null;
+    }
   }
 }

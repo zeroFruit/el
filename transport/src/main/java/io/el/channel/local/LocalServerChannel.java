@@ -2,7 +2,6 @@ package io.el.channel.local;
 
 import io.el.channel.AbstractServerChannel;
 import io.el.channel.ChannelId;
-import io.el.channel.ChannelPromise;
 import java.net.SocketAddress;
 
 public class LocalServerChannel extends AbstractServerChannel {
@@ -59,11 +58,6 @@ public class LocalServerChannel extends AbstractServerChannel {
     public SocketAddress remoteAddress() {
       // local server channel has no remote address
       return null;
-    }
-
-    @Override
-    public void connect(SocketAddress remoteAddress, ChannelPromise promise) {
-      // TODO: implement me
     }
 
     @Override

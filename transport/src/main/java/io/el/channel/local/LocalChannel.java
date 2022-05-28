@@ -1,9 +1,13 @@
 package io.el.channel.local;
 
 import io.el.channel.AbstractChannel;
+import io.el.channel.Channel;
 import io.el.channel.ChannelId;
 import io.el.channel.ChannelPromise;
+import java.net.ConnectException;
 import java.net.SocketAddress;
+import java.nio.channels.AlreadyConnectedException;
+import java.nio.channels.ClosedChannelException;
 
 public class LocalChannel extends AbstractChannel {
 
@@ -72,7 +76,43 @@ public class LocalChannel extends AbstractChannel {
 
     @Override
     public void connect(SocketAddress remoteAddress, ChannelPromise promise) {
-      // TODO: implement me
+      if (!isOpen()) {
+        promise.setFailure(new ClosedChannelException());
+        return;
+      }
+
+      if (state == State.CONNECTED) {
+        AlreadyConnectedException cause = new AlreadyConnectedException();
+        promise.setFailure(cause);
+        pipeline().fireExceptionCaught(cause);
+        return;
+      }
+
+      if (state != State.BOUND) {
+        if (localAddress == null) {
+          localAddress = new LocalAddress(LocalChannel.this);
+        }
+      }
+
+      if (localAddress != null) {
+        try {
+          doBind(localAddress);
+        } catch (Throwable t) {
+          promise.setFailure(t);
+          // TODO: call close
+        }
+      }
+
+      Channel boundChannel = LocalChannelRegistry.get(remoteAddress);
+      if (!(boundChannel instanceof LocalServerChannel)) {
+        Exception cause = new ConnectException("Connection refused: " + remoteAddress);
+        promise.setFailure(cause);
+        // TODO: call close
+      }
+
+      LocalServerChannel serverChannel = (LocalServerChannel) boundChannel;
+      // TODO: implement serve
+      //      peer = serverChannel.serve(LocalChannel.this);
     }
 
     @Override

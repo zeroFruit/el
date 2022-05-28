@@ -163,10 +163,7 @@ public class DefaultChannelPipeline implements ChannelPipeline {
 
     @Override
     public void bind(
-        ChannelHandlerContext ctx,
-        SocketAddress localAddress,
-        ChannelPromise promise
-    ) {
+        ChannelHandlerContext ctx, SocketAddress localAddress, ChannelPromise promise) {
       ctx.channel().internal().bind(localAddress, promise);
     }
 

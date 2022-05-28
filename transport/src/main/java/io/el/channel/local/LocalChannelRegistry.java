@@ -7,7 +7,8 @@ import java.util.concurrent.ConcurrentMap;
 
 public class LocalChannelRegistry {
 
-  private static final ConcurrentMap<LocalAddress, Channel> boundChannels = new ConcurrentHashMap<>();
+  private static final ConcurrentMap<LocalAddress, Channel> boundChannels =
+      new ConcurrentHashMap<>();
 
   public static LocalAddress register(Channel channel, SocketAddress localAddress) {
     if (!(localAddress instanceof LocalAddress)) {

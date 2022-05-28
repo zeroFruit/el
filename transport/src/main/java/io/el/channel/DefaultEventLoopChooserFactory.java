@@ -22,9 +22,7 @@ public class DefaultEventLoopChooserFactory implements EventLoopChooserFactory {
 
     @Override
     public EventLoop next() {
-      RoundRobin roundRobin = new RoundRobin(loops.size());
-      roundRobin.next();
-      return loops.get(roundRobin.next());
+      return loops.get(new RoundRobin(loops.size()).next());
     }
   }
 

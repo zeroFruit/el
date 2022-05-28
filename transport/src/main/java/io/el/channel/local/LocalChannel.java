@@ -89,7 +89,7 @@ public class LocalChannel extends AbstractChannel {
       }
 
       if (state != State.BOUND && localAddress == null) {
-          localAddress = new LocalAddress(LocalChannel.this);
+        localAddress = new LocalAddress(LocalChannel.this);
       }
 
       if (localAddress != null) {

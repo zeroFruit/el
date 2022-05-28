@@ -165,7 +165,8 @@ public class DefaultChannelPipeline implements ChannelPipeline {
     }
   }
 
-  private static final class HeadContextHandler implements ChannelOutboundHandler, ChannelInboundHandler {
+  private static final class HeadContextHandler
+      implements ChannelOutboundHandler, ChannelInboundHandler {
 
     private final Internal internal;
 
@@ -201,9 +202,7 @@ public class DefaultChannelPipeline implements ChannelPipeline {
     }
 
     @Override
-    public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause) throws Exception {
-
-    }
+    public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause) throws Exception {}
   }
 
   private static final class TailContext extends AbstractChannelHandlerContext {
@@ -228,9 +227,7 @@ public class DefaultChannelPipeline implements ChannelPipeline {
     }
   }
 
-  /**
-   * The last handler.
-   */
+  /** The last handler. */
   private static final class TailContextHandler implements ChannelInboundHandler {
     @Override
     public void handlerAdded(ChannelHandlerContext ctx) throws Exception {

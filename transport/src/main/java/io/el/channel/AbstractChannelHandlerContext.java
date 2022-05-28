@@ -1,8 +1,5 @@
 package io.el.channel;
 
-import static io.el.channel.ChannelHandlerFlag.FLAG_INBOUND;
-import static io.el.channel.ChannelHandlerFlag.FLAG_INOUTBOUND;
-import static io.el.channel.ChannelHandlerFlag.FLAG_OUTBOUND;
 import static io.el.channel.ChannelHandlerFlag.flag;
 import static io.el.channel.ChannelHandlerFlag.isNotInbound;
 import static io.el.channel.ChannelHandlerFlag.isNotOutbound;

@@ -10,7 +10,8 @@ final class ChannelHandlerFlag {
   static final int FLAG_INOUTBOUND = 2;
 
   static int flag(Class<? extends ChannelHandler> clazz) {
-    if (ChannelInboundHandler.class.isAssignableFrom(clazz) && ChannelOutboundHandler.class.isAssignableFrom(clazz)) {
+    if (ChannelInboundHandler.class.isAssignableFrom(clazz)
+        && ChannelOutboundHandler.class.isAssignableFrom(clazz)) {
       return FLAG_INOUTBOUND;
     }
     if (ChannelInboundHandler.class.isAssignableFrom(clazz)) {

@@ -2,16 +2,11 @@ package io.el.channel;
 
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.junit.jupiter.api.Assertions.fail;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.spy;
-import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import java.net.SocketAddress;
 import java.util.concurrent.CountDownLatch;
-import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
@@ -27,12 +22,13 @@ public class AbstractChannelTests {
       ChannelEventLoop eventLoop = mock(ChannelEventLoop.class);
       when(eventLoop.inEventLoop()).thenReturn(true);
       CountDownLatch latch = new CountDownLatch(1);
-      TestInboundHandler handler = new TestInboundHandler() {
-        @Override
-        public void channelRegistered(ChannelHandlerContext ctx) throws Exception {
-          latch.countDown();
-        }
-      };
+      TestInboundHandler handler =
+          new TestInboundHandler() {
+            @Override
+            public void channelRegistered(ChannelHandlerContext ctx) throws Exception {
+              latch.countDown();
+            }
+          };
 
       TestChannel channel = new TestChannel();
       channel.pipeline().addLast(handler);
@@ -46,8 +42,7 @@ public class AbstractChannelTests {
     }
   }
 
-  private abstract class TestInboundHandler implements
-      ChannelInboundHandler {
+  private abstract class TestInboundHandler implements ChannelInboundHandler {
 
     @Override
     public void handlerAdded(ChannelHandlerContext ctx) throws Exception {

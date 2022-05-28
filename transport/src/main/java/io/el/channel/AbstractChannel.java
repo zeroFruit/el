@@ -41,8 +41,9 @@ public abstract class AbstractChannel implements Channel {
   }
 
   /**
-   * Create a new {@link AbstractInternal} instance which will be used for the life-time of the {@link Channel}
-   * */
+   * Create a new {@link AbstractInternal} instance which will be used for the life-time of the
+   * {@link Channel}
+   */
   protected abstract AbstractInternal newInternal();
 
   @Override

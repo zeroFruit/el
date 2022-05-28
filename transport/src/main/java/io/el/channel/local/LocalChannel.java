@@ -3,11 +3,12 @@ package io.el.channel.local;
 import io.el.channel.AbstractChannel;
 import io.el.channel.ChannelId;
 import io.el.channel.ChannelPromise;
+import io.el.internal.ObjectUtil;
 import java.net.SocketAddress;
 
 public class LocalChannel extends AbstractChannel {
 
-  private enum State {
+  public enum State {
     OPEN,
     BOUND,
     CONNECTED,
@@ -33,7 +34,7 @@ public class LocalChannel extends AbstractChannel {
   }
 
   @Override
-  protected AbstractInternal newInternal() {
+  protected LocalInternal newInternal() {
     return new LocalInternal();
   }
 
@@ -77,7 +78,10 @@ public class LocalChannel extends AbstractChannel {
 
     @Override
     public void doBind(SocketAddress localAddress) {
-      // TODO: implement me
+      ObjectUtil.checkNotNull(localAddress(), "already bound");
+      LocalChannel.this.localAddress =
+          LocalChannelRegistry.register(LocalChannel.this, localAddress);
+      state = State.BOUND;
     }
   }
 }

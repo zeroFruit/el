@@ -15,7 +15,7 @@ import java.util.concurrent.ThreadFactory;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 
-public abstract class DefaultEventLoopGroup implements EventLoopGroup {
+public abstract class AbstractEventLoopGroup implements EventLoopGroup {
 
   static final long DEFAULT_TIMEOUT = 15;
   private final List<EventLoop> children;
@@ -25,7 +25,7 @@ public abstract class DefaultEventLoopGroup implements EventLoopGroup {
    * * Create {@link EventLoop} children with size of {@param nThreads}, then add chooser with
    * {@param chooserFactory}
    */
-  protected DefaultEventLoopGroup(
+  protected AbstractEventLoopGroup(
       int nThreads, Executor executor, EventLoopChooserFactory chooserFactory) {
     checkPositive(nThreads, "nThreads");
 
@@ -155,27 +155,24 @@ public abstract class DefaultEventLoopGroup implements EventLoopGroup {
   }
 
   @Override
-  public <T> List<Future<T>> invokeAll(Collection<? extends Callable<T>> tasks)
-      throws InterruptedException {
+  public <T> List<Future<T>> invokeAll(Collection<? extends Callable<T>> tasks) {
     throw new UnsupportedOperationException();
   }
 
   @Override
   public <T> List<Future<T>> invokeAll(
       Collection<? extends Callable<T>> tasks, long timeout, TimeUnit unit)
-      throws InterruptedException {
+       {
     throw new UnsupportedOperationException();
   }
 
   @Override
-  public <T> T invokeAny(Collection<? extends Callable<T>> tasks)
-      throws InterruptedException, ExecutionException {
+  public <T> T invokeAny(Collection<? extends Callable<T>> tasks) {
     throw new UnsupportedOperationException();
   }
 
   @Override
-  public <T> T invokeAny(Collection<? extends Callable<T>> tasks, long timeout, TimeUnit unit)
-      throws InterruptedException, ExecutionException, TimeoutException {
+  public <T> T invokeAny(Collection<? extends Callable<T>> tasks, long timeout, TimeUnit unit) {
     throw new UnsupportedOperationException();
   }
 }

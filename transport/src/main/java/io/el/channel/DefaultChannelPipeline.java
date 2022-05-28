@@ -228,11 +228,23 @@ public class DefaultChannelPipeline implements ChannelPipeline {
     }
   }
 
-  /** The last handler. */
-  private static final class TailContextHandler implements ChannelHandler {
+  /**
+   * The last handler.
+   */
+  private static final class TailContextHandler implements ChannelInboundHandler {
     @Override
     public void handlerAdded(ChannelHandlerContext ctx) throws Exception {
       // TODO:
+    }
+
+    @Override
+    public void channelRegistered(ChannelHandlerContext ctx) throws Exception {
+      // NO-OP
+    }
+
+    @Override
+    public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause) throws Exception {
+      // TODO: handle exception
     }
   }
 }

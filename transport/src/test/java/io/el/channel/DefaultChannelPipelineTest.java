@@ -79,36 +79,36 @@ public class DefaultChannelPipelineTest {
     }
   }
 
-  @Nested
-  @DisplayName("On bind() method")
-  class BindMethod {
-    @Test
-    public void checkChannelBindCalled() throws InterruptedException {
-      Executor executor = new ThreadPerTaskExecutor(Executors.defaultThreadFactory());
-      final DefaultChannelEventLoop eventLoop = new DefaultChannelEventLoop(executor, null);
-
-      try {
-        final CountDownLatch latch = new CountDownLatch(1);
-        Channel channel =
-            new TestChannel() {
-              @Override
-              public ChannelPromise bind(SocketAddress localAddress) {
-                assertEquals(((InetSocketAddress) localAddress).getPort(), 8080);
-                latch.countDown();
-                return null;
-              }
-            };
-        channel.register(eventLoop);
-
-        DefaultChannelPipeline channelPipeline = new DefaultChannelPipeline(channel);
-        channelPipeline.bind(new InetSocketAddress(8080));
-
-        assertTrue(latch.await(1L, TimeUnit.SECONDS));
-      } finally {
-        eventLoop.shutdownGracefully(1, TimeUnit.SECONDS);
-      }
-    }
-  }
+//  @Nested
+//  @DisplayName("On bind() method")
+//  class BindMethod {
+//    @Test
+//    public void checkChannelBindCalled() throws InterruptedException {
+//      Executor executor = new ThreadPerTaskExecutor(
+//          Executors.defaultThreadFactory());
+//      final DefaultChannelEventLoop eventLoop = new DefaultChannelEventLoop(executor, null);
+//
+//      try {
+//        final CountDownLatch latch = new CountDownLatch(1);
+//        Channel channel = new TestChannel() {
+//          @Override
+//          public ChannelPromise bind(SocketAddress localAddress) {
+//            assertEquals(((InetSocketAddress) localAddress).getPort(), 8080);
+//            latch.countDown();
+//            return null;
+//          }
+//        };
+//        channel.register(eventLoop);
+//
+//        DefaultChannelPipeline channelPipeline = new DefaultChannelPipeline(channel);
+//        channelPipeline.bind(new InetSocketAddress(8080));
+//
+//        assertTrue(latch.await(1L, TimeUnit.SECONDS));
+//      } finally {
+//        eventLoop.shutdownGracefully(1, TimeUnit.SECONDS);
+//      }
+//    }
+//  }
 
   private static class TestChannel extends AbstractChannel {
     private boolean active;

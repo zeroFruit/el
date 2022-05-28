@@ -3,8 +3,8 @@ package io.el.channel.local;
 import io.el.channel.AbstractChannel;
 import io.el.channel.ChannelId;
 import io.el.channel.ChannelPromise;
+import io.el.internal.ObjectUtil;
 import java.net.SocketAddress;
-import java.util.Objects;
 
 public class LocalChannel extends AbstractChannel {
 
@@ -86,9 +86,7 @@ public class LocalChannel extends AbstractChannel {
 
     @Override
     public void doBind(SocketAddress localAddress) {
-      if (Objects.nonNull(localAddress())) {
-        throw new IllegalArgumentException("already bound");
-      }
+      ObjectUtil.checkNotNull(localAddress(), "already bound");
       setLocalAddress(LocalChannelRegistry.register(localChannel(), localAddress));
       state = State.BOUND;
     }

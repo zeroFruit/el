@@ -13,8 +13,8 @@ public abstract class AbstractChannel implements Channel {
 
   protected AbstractChannel(ChannelId id) {
     this.id = id;
+    this.internal = newInternal(); // internal is used in the pipeline
     this.pipeline = newPipeline();
-    this.internal = newInternal();
   }
 
   @Override
@@ -74,7 +74,7 @@ public abstract class AbstractChannel implements Channel {
 
   @Override
   public ChannelPromise connect(SocketAddress remoteAddress) {
-    return pipeline().connect(remoteAddress, localAddress(), newPromise());
+    return pipeline().connect(remoteAddress, newPromise());
   }
 
   private ChannelPromise newPromise() {
@@ -122,11 +122,6 @@ public abstract class AbstractChannel implements Channel {
     public void bind(SocketAddress localAddress, ChannelPromise promise) {
       // TODO: implement me
       AbstractChannel.this.bind(localAddress);
-    }
-
-    @Override
-    public void connect(SocketAddress remoteAddress, ChannelPromise promise) {
-      // TODO: implement me
     }
   }
 }

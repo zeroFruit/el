@@ -173,8 +173,7 @@ public class AbstractChannelHandlerContextTests {
     }
 
     @Override
-    public ChannelPromise connect(
-        SocketAddress remoteAddress, SocketAddress localAddress, ChannelPromise promise) {
+    public ChannelPromise connect(SocketAddress remoteAddress, ChannelPromise promise) {
       throw new UnsupportedOperationException();
     }
   }

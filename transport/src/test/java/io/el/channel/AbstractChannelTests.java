@@ -5,6 +5,7 @@ import static org.junit.jupiter.api.Assertions.fail;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
+import java.net.InetSocketAddress;
 import java.net.SocketAddress;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
@@ -81,6 +82,51 @@ public class AbstractChannelTests {
     }
   }
 
+  @Test
+  @DisplayName("when in event loop, then fire connect handlers")
+  public void connect() throws Exception {
+    ChannelEventLoop eventLoop = mock(ChannelEventLoop.class);
+    when(eventLoop.inEventLoop()).thenReturn(true);
+    CountDownLatch latch = new CountDownLatch(1);
+    TestOutboundHandler handler =
+        new TestOutboundHandler() {
+          @Override
+          public void connect(
+              ChannelHandlerContext ctx, SocketAddress remoteAddress, ChannelPromise promise)
+              throws Exception {
+            latch.countDown();
+            ctx.connect(remoteAddress, promise);
+          }
+        };
+
+    TestChannel channel =
+        new TestChannel() {
+          @Override
+          protected AbstractInternal newInternal() {
+            return new TestChannel.TestAbstractInternal() {
+
+              @Override
+              public void connect(SocketAddress remoteAddress, ChannelPromise promise) {
+                promise.setSuccess(null);
+              }
+            };
+          }
+        };
+    channel.pipeline().addLast(handler);
+
+    ChannelPromise registerPromise = new DefaultChannelPromise(channel, eventLoop);
+    channel.internal().register(eventLoop, registerPromise);
+    registerPromise.await();
+
+    InetSocketAddress remoteAddress = InetSocketAddress.createUnresolved("localhost", 8080);
+    ChannelPromise promise = channel.connect(remoteAddress);
+    promise.await();
+    boolean latchResult = latch.await(1, TimeUnit.SECONDS);
+    assertTrue(latchResult);
+
+    assertTrue(promise.isSuccess());
+  }
+
   private abstract class TestInboundHandler implements ChannelInboundHandler {
 
     @Override
@@ -99,6 +145,26 @@ public class AbstractChannelTests {
     }
   }
 
+  private abstract class TestOutboundHandler implements ChannelOutboundHandler {
+    @Override
+    public void handlerAdded(ChannelHandlerContext ctx) throws Exception {
+      fail("should not be called");
+    }
+
+    @Override
+    public void bind(ChannelHandlerContext ctx, SocketAddress localAddress, ChannelPromise promise)
+        throws Exception {
+      fail("should not be called");
+    }
+
+    @Override
+    public void connect(
+        ChannelHandlerContext ctx, SocketAddress remoteAddress, ChannelPromise promise)
+        throws Exception {
+      fail("should not be called");
+    }
+  }
+
   class TestChannel extends AbstractChannel {
 
     protected TestChannel() {
@@ -111,17 +177,23 @@ public class AbstractChannelTests {
 
     @Override
     protected AbstractInternal newInternal() {
-      return new AbstractInternal() {
-        @Override
-        public SocketAddress localAddress() {
-          return null;
-        }
+      return new TestAbstractInternal();
+    }
 
-        @Override
-        public SocketAddress remoteAddress() {
-          return null;
-        }
-      };
+    public class TestAbstractInternal extends AbstractInternal {
+
+      @Override
+      public SocketAddress localAddress() {
+        return null;
+      }
+
+      @Override
+      public SocketAddress remoteAddress() {
+        return null;
+      }
+
+      @Override
+      public void connect(SocketAddress remoteAddress, ChannelPromise promise) {}
     }
 
     @Override

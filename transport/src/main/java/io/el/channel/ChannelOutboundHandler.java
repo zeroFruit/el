@@ -18,13 +18,8 @@ public interface ChannelOutboundHandler extends ChannelHandler {
    *
    * @param ctx the {@link ChannelHandlerContext} for which the connect operation is made
    * @param remoteAddress the {@link SocketAddress} to which it should connect
-   * @param localAddress the {@link SocketAddress} which is used as source on connect
    * @param promise the {@link ChannelPromise} to notify once the operation completes
    */
-  void connect(
-      ChannelHandlerContext ctx,
-      SocketAddress remoteAddress,
-      SocketAddress localAddress,
-      ChannelPromise promise)
+  void connect(ChannelHandlerContext ctx, SocketAddress remoteAddress, ChannelPromise promise)
       throws Exception;
 }

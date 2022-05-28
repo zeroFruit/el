@@ -194,6 +194,11 @@ public class AbstractChannelTests {
 
       @Override
       public void connect(SocketAddress remoteAddress, ChannelPromise promise) {}
+
+      @Override
+      public void doBind(SocketAddress localAddress, ChannelPromise promise) {
+
+      }
     }
 
     @Override

@@ -35,8 +35,6 @@ public interface Channel {
    */
   SocketAddress remoteAddress();
 
-  ChannelPromise register(ChannelEventLoop eventLoop);
-
   ChannelPromise bind(SocketAddress localAddress);
 
   ChannelPromise connect(SocketAddress remoteAddress);

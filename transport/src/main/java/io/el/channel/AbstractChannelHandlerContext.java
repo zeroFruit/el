@@ -1,8 +1,8 @@
 package io.el.channel;
 
-import static io.el.channel.ChannelHandlerFlag.FLAG_INBOUND;
-import static io.el.channel.ChannelHandlerFlag.FLAG_OUTBOUND;
 import static io.el.channel.ChannelHandlerFlag.flag;
+import static io.el.channel.ChannelHandlerFlag.isNotInbound;
+import static io.el.channel.ChannelHandlerFlag.isNotOutbound;
 
 import io.el.concurrent.EventLoop;
 import io.el.internal.ObjectUtil;
@@ -113,7 +113,7 @@ public abstract class AbstractChannelHandlerContext implements ChannelHandlerCon
     AbstractChannelHandlerContext ctx = this;
     do {
       ctx = ctx.next;
-    } while (ctx.executionFlag != FLAG_INBOUND);
+    } while (isNotInbound(ctx.executionFlag));
     return ctx;
   }
 
@@ -121,7 +121,7 @@ public abstract class AbstractChannelHandlerContext implements ChannelHandlerCon
     AbstractChannelHandlerContext ctx = this;
     do {
       ctx = ctx.prev;
-    } while (ctx.executionFlag != FLAG_OUTBOUND);
+    } while (isNotOutbound(ctx.executionFlag));
     return ctx;
   }
 

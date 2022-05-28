@@ -1,5 +1,6 @@
 package io.el.channel;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.junit.jupiter.api.Assertions.fail;
 import static org.mockito.Mockito.mock;
@@ -127,6 +128,41 @@ public class AbstractChannelTests {
     assertTrue(promise.isSuccess());
   }
 
+  @Nested
+  @DisplayName("On bind() method")
+  class BindMethod {
+
+    @Test
+    @DisplayName("when in event loop, then bind local address")
+    public void bindLocalAddress() throws Exception {
+      ChannelEventLoop eventLoop = mock(ChannelEventLoop.class);
+      when(eventLoop.inEventLoop()).thenReturn(true);
+      CountDownLatch latch = new CountDownLatch(1);
+      TestInboundHandler handler =
+          new TestInboundHandler() {
+            @Override
+            public void channelRegistered(ChannelHandlerContext ctx) throws Exception {
+              latch.countDown();
+            }
+          };
+
+      TestChannel channel = new TestChannel();
+      channel.pipeline().addLast(handler);
+
+      ChannelPromise eventLoopPromise = new DefaultChannelPromise(channel, eventLoop);
+      channel.internal().register(eventLoop, eventLoopPromise);
+      eventLoopPromise.await();
+      latch.await();
+      assertTrue(eventLoopPromise.isSuccess());
+
+      SocketAddress localAddress = InetSocketAddress.createUnresolved("localhost", 8080);
+      ChannelPromise bindPromise = channel.bind(localAddress);
+      bindPromise.await();
+      assertEquals(localAddress, channel.localAddress);
+      assertTrue(bindPromise.isSuccess());
+    }
+  }
+
   private abstract class TestInboundHandler implements ChannelInboundHandler {
 
     @Override
@@ -167,12 +203,18 @@ public class AbstractChannelTests {
 
   class TestChannel extends AbstractChannel {
 
+    private SocketAddress localAddress;
+
     protected TestChannel() {
       this(ChannelId.of("TEST_CHANNEL"));
     }
 
     protected TestChannel(ChannelId id) {
       super(id);
+    }
+
+    public void setLocalAddress(SocketAddress localAddress) {
+      this.localAddress = localAddress;
     }
 
     @Override
@@ -197,7 +239,7 @@ public class AbstractChannelTests {
 
       @Override
       public void doBind(SocketAddress localAddress, ChannelPromise promise) {
-
+        setLocalAddress(localAddress);
       }
     }
 

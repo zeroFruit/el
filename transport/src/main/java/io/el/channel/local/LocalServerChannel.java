@@ -65,5 +65,10 @@ public class LocalServerChannel extends AbstractServerChannel {
     public void connect(SocketAddress remoteAddress, ChannelPromise promise) {
       // TODO: implement me
     }
+
+    @Override
+    public void doBind(SocketAddress localAddress, ChannelPromise promise) {
+      // TODO: implement me
+    }
   }
 }

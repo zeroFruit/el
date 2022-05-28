@@ -73,10 +73,6 @@ public abstract class AbstractChannel implements Channel {
     return pipeline().connect(remoteAddress, newPromise());
   }
 
-  public boolean isBound(SocketAddress localAddress) {
-    return this.localAddress().equals(localAddress);
-  }
-
   private ChannelPromise newPromise() {
     return new DefaultChannelPromise(this, channelEventLoop);
   }
@@ -98,7 +94,6 @@ public abstract class AbstractChannel implements Channel {
         doRegister(promise);
         return;
       }
-
       try {
         eventLoop.execute(() -> doRegister(promise));
       } catch (Throwable t) {
@@ -127,13 +122,10 @@ public abstract class AbstractChannel implements Channel {
         promise.setFailure(new IllegalStateException("channel state is not able to bind"));
         return;
       }
-      if (isBound(localAddress)) {
-        promise.setFailure(new IllegalStateException("local address is already bound"));
-        return;
-      }
 
       try {
         this.doBind(localAddress, promise);
+        promise.setSuccess(null);
       } catch (Exception e) {
         promise.setFailure(e);
       }

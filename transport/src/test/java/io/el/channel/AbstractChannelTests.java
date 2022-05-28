@@ -8,7 +8,6 @@ import static org.mockito.Mockito.when;
 import java.net.SocketAddress;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
-
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
@@ -50,24 +49,24 @@ public class AbstractChannelTests {
       when(eventLoop.inEventLoop()).thenReturn(true);
       CountDownLatch latch = new CountDownLatch(1);
 
-      class TestException extends RuntimeException {
-      }
+      class TestException extends RuntimeException {}
 
-      TestInboundHandler handler = new TestInboundHandler() {
-        @Override
-        public void channelRegistered(ChannelHandlerContext ctx) {
-         throw new TestException();
-        }
+      TestInboundHandler handler =
+          new TestInboundHandler() {
+            @Override
+            public void channelRegistered(ChannelHandlerContext ctx) {
+              throw new TestException();
+            }
 
-        @Override
-        public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause) {
-          if (cause instanceof  TestException) {
-            latch.countDown();
-          } else {
-            System.err.println("unknown exception " + cause);
-          }
-        }
-      };
+            @Override
+            public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause) {
+              if (cause instanceof TestException) {
+                latch.countDown();
+              } else {
+                System.err.println("unknown exception " + cause);
+              }
+            }
+          };
 
       TestChannel channel = new TestChannel();
       channel.pipeline().addLast(handler);

@@ -41,7 +41,7 @@ public class DefaultChannelEventLoopGroup extends AbstractEventLoopGroup
 
   @Override
   public ChannelPromise register(Channel channel) {
-    return channel.register(this.next());
+    return next().register(channel);
   }
 
   @Override

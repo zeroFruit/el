@@ -22,23 +22,23 @@ public class DefaultEventLoopChooserFactory implements EventLoopChooserFactory {
 
     @Override
     public EventLoop next() {
-      AtomicIntegerRoundRobin atomicIntegerRoundRobin = new AtomicIntegerRoundRobin(loops.size());
-      atomicIntegerRoundRobin.index();
-      return loops.get(atomicIntegerRoundRobin.index());
+      RoundRobin roundRobin = new RoundRobin(loops.size());
+      roundRobin.next();
+      return loops.get(roundRobin.next());
     }
   }
 
-  private static class AtomicIntegerRoundRobin {
+  private static class RoundRobin {
 
-    private final AtomicInteger atomicInteger = new AtomicInteger(-1);
-    private final int totalIndexes;
+    private final AtomicInteger idx = new AtomicInteger(-1);
+    private final int total;
 
-    public AtomicIntegerRoundRobin(int totalIndexes) {
-      this.totalIndexes = totalIndexes;
+    public RoundRobin(int total) {
+      this.total = total;
     }
 
-    public int index() {
-      return this.atomicInteger.incrementAndGet() % this.totalIndexes;
+    public int next() {
+      return this.idx.incrementAndGet() % this.total;
     }
   }
 }

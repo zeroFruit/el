@@ -13,8 +13,8 @@ public abstract class AbstractChannel implements Channel {
 
   protected AbstractChannel(ChannelId id) {
     this.id = id;
+    this.internal = newInternal(); // internal is used in the pipeline
     this.pipeline = newPipeline();
-    this.internal = newInternal();
   }
 
   @Override

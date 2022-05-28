@@ -23,4 +23,8 @@ public class LocalChannelRegistry {
     }
     return address;
   }
+
+  static Channel get(SocketAddress localAddress) {
+    return boundChannels.get(localAddress);
+  }
 }

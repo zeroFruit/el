@@ -30,6 +30,9 @@ public abstract class AbstractEventLoopGroup implements EventLoopGroup {
     if (executor == null) {
       executor = new ThreadPerTaskExecutor(this.newDefaultThreadFactory());
     }
+    if (chooserFactory == null) {
+      chooserFactory = new DefaultEventLoopChooserFactory();
+    }
 
     this.children = new ArrayList<>();
     for (int i = 0; i < nThreads; i++) {

@@ -10,4 +10,9 @@ public final class ChannelId {
   public static ChannelId of(String value) {
     return new ChannelId(value);
   }
+
+  @Override
+  public String toString() {
+    return value;
+  }
 }

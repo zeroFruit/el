@@ -24,4 +24,16 @@ public final class ObjectUtil {
     }
     return l;
   }
+
+  public static String checkNonEmpty(final String value, final String name) {
+    if (checkNotNull(value, name).isEmpty()) {
+      throw new IllegalArgumentException("Param '" + name + "' must not be empty");
+    }
+    return value;
+  }
+
+  public static String checkNonEmptyAfterTrim(final String value, final String name) {
+    String trimmed = checkNotNull(value, name).trim();
+    return checkNonEmpty(trimmed, name);
+  }
 }

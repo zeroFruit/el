@@ -51,6 +51,9 @@ public class DefaultChannelPipeline implements ChannelPipeline {
     this.tailContext.prev = newHandlerContext;
     newHandlerContext.next = this.tailContext;
 
+    // TODO: add channel added callback to the list. And when channel is registered
+    // to the eventloop, fire all pending added callback
+
     prev.next = newHandlerContext;
     newHandlerContext.prev = prev;
     return this;
@@ -122,8 +125,8 @@ public class DefaultChannelPipeline implements ChannelPipeline {
 
   @Override
   public ChannelPipeline fireChannelRegistered() {
-    // TODO:
-    return null;
+    AbstractChannelHandlerContext.invokeChannelRegistered(headContext);
+    return this;
   }
 
   @Override
@@ -162,7 +165,7 @@ public class DefaultChannelPipeline implements ChannelPipeline {
     }
   }
 
-  private static final class HeadContextHandler implements ChannelHandler, ChannelOutboundHandler {
+  private static final class HeadContextHandler implements ChannelOutboundHandler, ChannelInboundHandler {
 
     private final Internal internal;
 
@@ -189,6 +192,17 @@ public class DefaultChannelPipeline implements ChannelPipeline {
         ChannelPromise promise)
         throws Exception {
       // TODO:
+    }
+
+    @Override
+    public void channelRegistered(ChannelHandlerContext ctx) throws Exception {
+      // TODO: invoke channel registered callbacks of handlers
+      ctx.fireChannelRegistered();
+    }
+
+    @Override
+    public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause) throws Exception {
+
     }
   }
 

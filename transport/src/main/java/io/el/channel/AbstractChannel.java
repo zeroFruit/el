@@ -13,7 +13,7 @@ public abstract class AbstractChannel implements Channel {
 
   protected AbstractChannel(ChannelId id) {
     this.id = id;
-    this.pipeline = null;
+    this.pipeline = newPipeline();
     this.internal = newInternal();
   }
 
@@ -32,16 +32,17 @@ public abstract class AbstractChannel implements Channel {
     return internal;
   }
 
-<<<<<<< HEAD
-=======
   public boolean isRegistered() {
     return registered;
+  }
+
+  protected ChannelPipeline newPipeline() {
+    return new DefaultChannelPipeline(this);
   }
 
   /**
    * Create a new {@link AbstractInternal} instance which will be used for the life-time of the {@link Channel}
    * */
->>>>>>> a9157d9 (feat: impl AbstractChannel register)
   protected abstract AbstractInternal newInternal();
 
   @Override
@@ -61,13 +62,6 @@ public abstract class AbstractChannel implements Channel {
   @Override
   public SocketAddress remoteAddress() {
     return internal().remoteAddress();
-  }
-
-  @Override
-  public ChannelPromise register(ChannelEventLoop eventLoop) {
-    ChannelPromise promise = newPromise();
-    internal().register(eventLoop, promise);
-    return promise;
   }
 
   protected abstract void register();
@@ -92,8 +86,35 @@ public abstract class AbstractChannel implements Channel {
 
     @Override
     public void register(ChannelEventLoop eventLoop, ChannelPromise promise) {
-      // TODO: implement me
-      AbstractChannel.this.channelEventLoop = eventLoop;
+      ObjectUtil.checkNotNull(eventLoop, "channelEventLoop");
+      if (isRegistered()) {
+        promise.setFailure(new IllegalStateException("already registered to a channel event loop"));
+        return;
+      }
+      registerEventLoop(eventLoop);
+
+      if (eventLoop.inEventLoop()) {
+        doRegister(promise);
+        return;
+      }
+      try {
+        eventLoop.execute(() -> doRegister(promise));
+      } catch (Throwable t) {
+        // TODO: logging, error handling
+        promise.setFailure(t);
+      }
+    }
+
+    private void doRegister(ChannelPromise promise) {
+      try {
+        registered = true;
+        pipeline.fireChannelRegistered();
+        AbstractChannel.this.register();
+        promise.setSuccess(null);
+      } catch (Throwable t) {
+        // TODO: logging, error handling
+        promise.setFailure(t);
+      }
     }
 
     @Override

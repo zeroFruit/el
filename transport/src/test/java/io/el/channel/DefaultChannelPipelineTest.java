@@ -139,6 +139,11 @@ public class DefaultChannelPipelineTest {
       return new MyInternal();
     }
 
+    @Override
+    protected void register() {
+
+    }
+
     private class MyInternal extends AbstractInternal {
 
       @Override

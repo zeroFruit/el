@@ -10,6 +10,8 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import java.net.SocketAddress;
+import java.util.concurrent.CountDownLatch;
+import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
@@ -24,22 +26,23 @@ public class AbstractChannelTests {
     public void fireChannelRegisterHandlers() throws Exception {
       ChannelEventLoop eventLoop = mock(ChannelEventLoop.class);
       when(eventLoop.inEventLoop()).thenReturn(true);
-//      ChannelInboundHandler handler = mock(ChannelInboundHandler.class);
-//      doNothing().when(handler.channelRegistered());
+      CountDownLatch latch = new CountDownLatch(1);
       TestInboundHandler handler = new TestInboundHandler() {
         @Override
         public void channelRegistered(ChannelHandlerContext ctx) throws Exception {
-          System.out.println("asdf");
+          latch.countDown();
         }
       };
 
       TestChannel channel = new TestChannel();
       channel.pipeline().addLast(handler);
 
-      ChannelPromise promise = channel.register(eventLoop).await();
+      ChannelPromise promise = new DefaultChannelPromise(channel, eventLoop);
+      channel.internal().register(eventLoop, promise);
+      promise.await();
+      latch.await();
 
       assertTrue(promise.isSuccess());
-      verify(handler).channelRegistered(any());
     }
   }
 

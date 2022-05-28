@@ -46,7 +46,7 @@ public class DefaultChannelPipeline implements ChannelPipeline {
     String name = UUID.randomUUID().toString();
     EventLoop eventLoop = null;
     final AbstractChannelHandlerContext newHandlerContext =
-        new DefaultHandlerContext__(name, this, eventLoop, handler);
+        new DefaultChannelHandlerContext(name, this, eventLoop, handler);
 
     this.tailContext.prev = newHandlerContext;
     newHandlerContext.next = this.tailContext;
@@ -130,29 +130,6 @@ public class DefaultChannelPipeline implements ChannelPipeline {
   public ChannelInboundInvoker fireExceptionCaught(Throwable cause) {
     // TODO:
     return null;
-  }
-
-  private static final class DefaultHandlerContext__ extends AbstractChannelHandlerContext {
-
-    private final ChannelHandler handler;
-
-    public DefaultHandlerContext__(
-        String name, ChannelPipeline pipeline, EventLoop eventLoop, ChannelHandler handler) {
-      super(name, pipeline, eventLoop, handler.getClass());
-      this.handler = handler;
-    }
-
-    @Override
-    public ChannelHandler handler() {
-      return this.handler;
-    }
-
-    @Override
-    public ChannelPromise connect(
-        SocketAddress remoteAddress, SocketAddress localAddress, ChannelPromise promise) {
-      // TODO:
-      return null;
-    }
   }
 
   /**

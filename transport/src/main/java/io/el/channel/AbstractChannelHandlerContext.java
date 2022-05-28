@@ -147,12 +147,7 @@ public abstract class AbstractChannelHandlerContext implements ChannelHandlerCon
     if (eventLoop.inEventLoop()) {
       next.invokeBind(localAddress, promise);
     } else {
-      safeExecute(
-          eventLoop,
-          () -> {
-            next.invokeBind(localAddress, promise);
-          },
-          promise);
+      safeExecute(eventLoop, () -> next.invokeBind(localAddress, promise), promise);
     }
     return promise;
   }

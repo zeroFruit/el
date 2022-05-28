@@ -116,8 +116,26 @@ public abstract class AbstractChannel implements Channel {
 
     @Override
     public void bind(SocketAddress localAddress, ChannelPromise promise) {
-      // TODO: implement me
-      AbstractChannel.this.bind(localAddress);
+      ObjectUtil.checkNotNull(localAddress, "channelLocalAddress");
+
+      if (isRegistered() && !channelEventLoop.inEventLoop()) {
+        promise.setFailure(new IllegalStateException("channel state is not able to bind"));
+        return;
+      }
+
+      try {
+        this.doBind(localAddress, promise);
+        promise.setSuccess(null);
+      } catch (Exception e) {
+        promise.setFailure(e);
+      }
     }
+
+    @Override
+    public void connect(SocketAddress remoteAddress, ChannelPromise promise) {
+      // TODO: implement me
+    }
+
+    public abstract void doBind(SocketAddress localAddress, ChannelPromise promise);
   }
 }

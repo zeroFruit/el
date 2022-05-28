@@ -1,6 +1,5 @@
 package io.el.channel;
 
-import io.el.channel.Channel.Internal;
 import io.el.concurrent.EventLoop;
 import io.el.internal.ObjectUtil;
 import java.net.SocketAddress;
@@ -142,12 +141,10 @@ public class DefaultChannelPipeline implements ChannelPipeline {
   private static final class HeadContext extends AbstractChannelHandlerContext {
 
     private final HeadContextHandler handler;
-    private final Internal internal;
 
     public HeadContext(DefaultChannelPipeline pipeline) {
       super(HEAD_NAME, pipeline, null, HeadContextHandler.class);
-      this.internal = pipeline.channel().internal();
-      this.handler = new HeadContextHandler(this.internal);
+      this.handler = new HeadContextHandler();
     }
 
     @Override
@@ -159,28 +156,22 @@ public class DefaultChannelPipeline implements ChannelPipeline {
   private static final class HeadContextHandler
       implements ChannelOutboundHandler, ChannelInboundHandler {
 
-    private final Internal internal;
-
-    private HeadContextHandler(Internal internal) {
-      this.internal = internal;
-    }
-
     @Override
     public void handlerAdded(ChannelHandlerContext ctx) throws Exception {
       // TODO:
     }
 
     @Override
-    public void bind(ChannelHandlerContext ctx, SocketAddress localAddress, ChannelPromise promise)
-        throws Exception {
-      this.internal.bind(localAddress, promise);
+    public void bind(
+        ChannelHandlerContext ctx, SocketAddress localAddress, ChannelPromise promise) {
+      ctx.channel().internal().bind(localAddress, promise);
     }
 
     @Override
     public void connect(
         ChannelHandlerContext ctx, SocketAddress remoteAddress, ChannelPromise promise)
         throws Exception {
-      this.internal.connect(remoteAddress, promise);
+      ctx.channel().internal().connect(remoteAddress, promise);
     }
 
     @Override

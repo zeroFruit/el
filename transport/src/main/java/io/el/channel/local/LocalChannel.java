@@ -4,6 +4,7 @@ import io.el.channel.AbstractChannel;
 import io.el.channel.ChannelId;
 import io.el.channel.ChannelPromise;
 import java.net.SocketAddress;
+import java.util.Objects;
 
 public class LocalChannel extends AbstractChannel {
 
@@ -58,6 +59,14 @@ public class LocalChannel extends AbstractChannel {
     return state == State.CONNECTED;
   }
 
+  private void setLocalAddress(LocalAddress localAddress) {
+    this.localAddress = localAddress;
+  }
+
+  private LocalChannel localChannel() {
+    return this;
+  }
+
   private class LocalInternal extends AbstractInternal {
 
     @Override
@@ -77,7 +86,11 @@ public class LocalChannel extends AbstractChannel {
 
     @Override
     public void doBind(SocketAddress localAddress) {
-      // TODO: implement me
+      if (Objects.nonNull(localAddress())) {
+        throw new IllegalArgumentException("already bound");
+      }
+      setLocalAddress(LocalChannelRegistry.register(localChannel(), localAddress));
+      state = State.BOUND;
     }
   }
 }

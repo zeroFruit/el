@@ -24,6 +24,5 @@ public interface ChannelOutboundInvoker {
    *
    * <p>The result of the operation will be contained in {@link ChannelPromise}
    */
-  ChannelPromise connect(
-      SocketAddress remoteAddress, SocketAddress localAddress, ChannelPromise promise);
+  ChannelPromise connect(SocketAddress remoteAddress, ChannelPromise promise);
 }

@@ -39,8 +39,6 @@ public interface Channel {
 
   ChannelPromise connect(SocketAddress remoteAddress);
 
-  ChannelPromise connect(SocketAddress remoteAddtess, SocketAddress localAddress);
-
   /** Returns an internal-use-only object that providees unsafe operations */
   Internal internal();
 
@@ -69,9 +67,8 @@ public interface Channel {
 
     /**
      * Connect the {@link Channel} of the given {@link ChannelPromise} with the given remote {@link
-     * SocketAddress}. If a specific local {@link SocketAddress} should be needed, it should be
-     * given as an argument. Otherwise just pass {@code null} to it.
+     * SocketAddress}.
      */
-    void connect(SocketAddress remoteAddress, SocketAddress localAddress, ChannelPromise promise);
+    void connect(SocketAddress remoteAddress, ChannelPromise promise);
   }
 }

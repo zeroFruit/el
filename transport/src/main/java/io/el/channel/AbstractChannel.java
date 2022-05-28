@@ -74,12 +74,7 @@ public abstract class AbstractChannel implements Channel {
 
   @Override
   public ChannelPromise connect(SocketAddress remoteAddress) {
-    return pipeline().connect(remoteAddress, localAddress(), newPromise());
-  }
-
-  @Override
-  public ChannelPromise connect(SocketAddress remoteAddress, SocketAddress localAddress) {
-    return pipeline().connect(remoteAddress, localAddress, newPromise());
+    return pipeline().connect(remoteAddress, newPromise());
   }
 
   private ChannelPromise newPromise() {

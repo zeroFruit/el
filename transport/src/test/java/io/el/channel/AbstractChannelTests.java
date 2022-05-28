@@ -92,13 +92,10 @@ public class AbstractChannelTests {
         new TestOutboundHandler() {
           @Override
           public void connect(
-              ChannelHandlerContext ctx,
-              SocketAddress remoteAddress,
-              SocketAddress localAddress,
-              ChannelPromise promise)
+              ChannelHandlerContext ctx, SocketAddress remoteAddress, ChannelPromise promise)
               throws Exception {
             latch.countDown();
-            ctx.connect(remoteAddress, localAddress, promise);
+            ctx.connect(remoteAddress, promise);
           }
         };
 
@@ -109,8 +106,7 @@ public class AbstractChannelTests {
             return new TestChannel.TestAbstractInternal() {
 
               @Override
-              public void connect(
-                  SocketAddress remoteAddress, SocketAddress localAddress, ChannelPromise promise) {
+              public void connect(SocketAddress remoteAddress, ChannelPromise promise) {
                 promise.setSuccess(null);
               }
             };
@@ -123,7 +119,7 @@ public class AbstractChannelTests {
     registerPromise.await();
 
     InetSocketAddress remoteAddress = InetSocketAddress.createUnresolved("localhost", 8080);
-    ChannelPromise promise = channel.connect(remoteAddress, null);
+    ChannelPromise promise = channel.connect(remoteAddress);
     promise.await();
     boolean latchResult = latch.await(1, TimeUnit.SECONDS);
     assertTrue(latchResult);
@@ -163,10 +159,7 @@ public class AbstractChannelTests {
 
     @Override
     public void connect(
-        ChannelHandlerContext ctx,
-        SocketAddress remoteAddress,
-        SocketAddress localAddress,
-        ChannelPromise promise)
+        ChannelHandlerContext ctx, SocketAddress remoteAddress, ChannelPromise promise)
         throws Exception {
       fail("should not be called");
     }
@@ -200,8 +193,7 @@ public class AbstractChannelTests {
       }
 
       @Override
-      public void connect(
-          SocketAddress remoteAddress, SocketAddress localAddress, ChannelPromise promise) {}
+      public void connect(SocketAddress remoteAddress, ChannelPromise promise) {}
     }
 
     @Override

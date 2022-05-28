@@ -7,7 +7,7 @@ import java.net.SocketAddress;
 
 public class LocalChannel extends AbstractChannel {
 
-  private enum State {
+  public enum State {
     OPEN,
     BOUND,
     CONNECTED,
@@ -76,7 +76,7 @@ public class LocalChannel extends AbstractChannel {
     }
 
     @Override
-    public void doBind(SocketAddress localAddress, ChannelPromise promise) {
+    public void doBind(SocketAddress localAddress) {
       // TODO: implement me
     }
   }

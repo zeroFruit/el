@@ -124,7 +124,7 @@ public abstract class AbstractChannel implements Channel {
       }
 
       try {
-        this.doBind(localAddress, promise);
+        this.doBind(localAddress);
         promise.setSuccess(null);
       } catch (Exception e) {
         promise.setFailure(e);
@@ -136,6 +136,6 @@ public abstract class AbstractChannel implements Channel {
       // TODO: implement me
     }
 
-    public abstract void doBind(SocketAddress localAddress, ChannelPromise promise);
+    public abstract void doBind(SocketAddress localAddress);
   }
 }

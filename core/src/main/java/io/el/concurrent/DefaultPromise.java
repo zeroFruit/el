@@ -184,6 +184,11 @@ public class DefaultPromise<V> implements Promise<V> {
   }
 
   @Override
+  public Throwable cause() {
+    return cause;
+  }
+
+  @Override
   public synchronized boolean cancel(boolean mayInterruptIfRunning) {
     throw new UnsupportedOperationException();
   }

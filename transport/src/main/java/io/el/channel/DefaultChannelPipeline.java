@@ -3,6 +3,10 @@ package io.el.channel;
 import io.el.concurrent.EventLoop;
 import io.el.internal.ObjectUtil;
 import java.net.SocketAddress;
+import java.util.Iterator;
+import java.util.LinkedHashMap;
+import java.util.Map;
+import java.util.Map.Entry;
 import java.util.UUID;
 
 /**
@@ -130,6 +134,23 @@ public class DefaultChannelPipeline implements ChannelPipeline {
   public ChannelInboundInvoker fireExceptionCaught(Throwable cause) {
     AbstractChannelHandlerContext.invokeExceptionCaught(headContext, cause);
     return this;
+  }
+
+  @Override
+  public Iterator<Entry<String, ChannelHandler>> iterator() {
+    return toMap().entrySet().iterator();
+  }
+
+  private final Map<String, ChannelHandler> toMap() {
+    Map<String, ChannelHandler> map = new LinkedHashMap<>();
+    AbstractChannelHandlerContext ctx = headContext.next;
+    for (; ; ) {
+      if (ctx == tailContext) {
+        return map;
+      }
+      map.put(ctx.name(), ctx.handler());
+      ctx = ctx.next;
+    }
   }
 
   /**

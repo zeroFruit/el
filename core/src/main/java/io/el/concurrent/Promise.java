@@ -34,4 +34,6 @@ public interface Promise<V> extends Future<V>, Runnable {
    * <p>If it is already success or failed then throws IllegalStateException
    */
   Promise<V> setFailure(Throwable cause);
+
+  Throwable cause();
 }

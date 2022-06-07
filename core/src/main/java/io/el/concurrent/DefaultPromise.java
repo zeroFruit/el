@@ -79,6 +79,7 @@ public class DefaultPromise<V> implements Promise<V> {
   @SuppressWarnings("unchecked")
   private void notifyListeners() {
     if (!eventLoop.inEventLoop()) {
+      eventLoop.execute(this::notifyListeners);
       return;
     }
 

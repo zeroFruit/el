@@ -34,23 +34,27 @@ public abstract class AbstractTransport<T extends AbstractTransport<T, C>, C ext
     validate();
     final ChannelPromise registered = initAndRegister();
     final Channel channel = registered.channel();
-    if (!registered.isSuccess()) {
+    if (registered.cause() != null) {
       return registered;
     }
-
-    // TODO: for now, just awaiting registered would be simple
-
-    ChannelPromise promise = new DefaultChannelPromise(channel);
+    ChannelPromise result = new DefaultChannelPromise(channel);
     if (registered.isDone()) {
-      doBind(registered, channel, localAddress, promise);
-      return promise;
+      doBind(registered, channel, localAddress, result);
+      return result;
     }
     // When the flow reaches here, that means `registered` promise is still not
     // resolved, so add the promise listener for receiving callback.
     // And in the callback, Transport runs doBind(...) to complete the binding
-    // TODO: run doBind in the eventLoop
+    registered.addListener(
+        promise -> {
+          if (!promise.isSuccess()) {
+            result.setFailure(promise.cause());
+            return;
+          }
+          doBind(registered, channel, localAddress, result);
+        });
 
-    return promise;
+    return result;
   }
 
   public T localAddress(SocketAddress localAddress) {
@@ -82,9 +86,11 @@ public abstract class AbstractTransport<T extends AbstractTransport<T, C>, C ext
                     .bind(localAddress)
                     .addListener(
                         promise -> {
-                          if (!promise.isSuccess()) {
-                            result.setFailure(promise.cause());
+                          if (promise.isSuccess()) {
+                            result.setSuccess(null);
+                            return;
                           }
+                          result.setFailure(promise.cause());
                         });
                 return;
               }

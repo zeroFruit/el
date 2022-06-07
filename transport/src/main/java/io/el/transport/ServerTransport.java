@@ -11,16 +11,6 @@ public class ServerTransport extends AbstractTransport<ServerTransport, Channel>
   private volatile ChannelEventLoopGroup clientGroup;
   private volatile ChannelHandler channelHandler;
 
-  public ServerTransport group(
-      ChannelEventLoopGroup parentGroup, ChannelEventLoopGroup clientGroup) {
-    super.group(parentGroup);
-    if (this.clientGroup != null) {
-      throw new IllegalStateException("childGroup set already");
-    }
-    this.clientGroup = clientGroup;
-    return this;
-  }
-
   public ServerTransport handler(ChannelHandler channelHandler) {
     this.channelHandler = ObjectUtil.checkNotNull(channelHandler, "childHandler");
     return this;

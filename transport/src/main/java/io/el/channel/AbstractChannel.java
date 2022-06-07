@@ -4,12 +4,21 @@ import io.el.internal.ObjectUtil;
 import java.net.SocketAddress;
 
 public abstract class AbstractChannel implements Channel {
+
+  protected static ChannelId generateId() {
+    return ChannelId.generate();
+  }
+
   private final ChannelId id;
   private final ChannelPipeline pipeline;
   private final Internal internal;
 
   private volatile ChannelEventLoop channelEventLoop;
   private volatile boolean registered;
+
+  protected AbstractChannel() {
+    this(generateId());
+  }
 
   protected AbstractChannel(ChannelId id) {
     this.id = id;

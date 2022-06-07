@@ -10,7 +10,10 @@ public class LocalServerChannel extends AbstractServerChannel {
 
   // localAddress specifies host address. Address is set at binding step
   private volatile LocalAddress localAddress;
+  private volatile LocalChannel client;
   private volatile State state;
+
+  public LocalServerChannel() {}
 
   protected LocalServerChannel(ChannelId id) {
     super(id);
@@ -46,8 +49,9 @@ public class LocalServerChannel extends AbstractServerChannel {
     return state == State.CONNECTED;
   }
 
-  protected LocalChannel newLocalChannel(ChannelId id, LocalChannel peer) {
-    return new LocalChannel(id, this, peer);
+  protected void connectFrom(LocalChannel client) {
+    this.client = client;
+    this.state = State.CONNECTED;
   }
 
   private class LocalServerInternal extends AbstractInternal {
@@ -65,7 +69,7 @@ public class LocalServerChannel extends AbstractServerChannel {
 
     @Override
     public void doBind(SocketAddress localAddress) {
-      ObjectUtil.checkNotNull(localAddress(), "already bound");
+      ObjectUtil.checkNotNull(localAddress, "already bound");
       LocalServerChannel.this.localAddress =
           LocalChannelRegistry.register(LocalServerChannel.this, localAddress);
       state = State.BOUND;

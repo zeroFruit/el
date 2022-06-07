@@ -10,7 +10,7 @@ public class DefaultChannelPromise extends DefaultPromise<Void> implements Chann
   private final Channel channel;
 
   public DefaultChannelPromise(Channel channel) {
-    super(null, () -> {});
+    super(channel.channelEventLoop(), () -> {});
     this.channel = channel;
   }
 

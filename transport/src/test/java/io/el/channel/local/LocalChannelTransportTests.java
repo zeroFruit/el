@@ -10,8 +10,13 @@ import io.el.channel.DefaultChannelEventLoopGroup;
 import io.el.transport.ClientTransport;
 import io.el.transport.ServerTransport;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
+/**
+ * Test of {@link LocalChannel} and {@link LocalServerChannel} with the use of {@link
+ * ClientTransport} and {@link ServerTransport}
+ */
 public class LocalChannelTransportTests {
   private static final String SERVER_ADDRESS = "server:addr";
 
@@ -24,6 +29,7 @@ public class LocalChannelTransportTests {
   }
 
   @Test
+  @DisplayName("When client connect to server, both server and client is in active state")
   public void localChannel() throws InterruptedException {
     ServerTransport st = new ServerTransport();
     ClientTransport ct = new ClientTransport();

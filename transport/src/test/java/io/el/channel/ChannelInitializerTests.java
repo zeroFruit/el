@@ -34,7 +34,7 @@ public class ChannelInitializerTests {
   @DisplayName("On initChannel() method")
   class HandlerAddedMethod {
     @Test
-    @DisplayName("When after registered to event loop, then initializer should be removed")
+    @DisplayName("When channel is registered to event loop, then initializer should be removed")
     public void initializerShouldBeRemoved() {
       ChannelPipeline pipeline = new LocalChannel(ChannelId.of("ch1")).pipeline();
       ChannelHandler handler = new TestInboundHandler();

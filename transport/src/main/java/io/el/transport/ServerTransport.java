@@ -7,6 +7,9 @@ import io.el.channel.ChannelInitializer;
 import io.el.channel.ChannelPipeline;
 import io.el.internal.ObjectUtil;
 
+/**
+ * A {@link ServerTransport} allows easy configure and use of {@link Channel} on the server-side.
+ */
 public class ServerTransport extends AbstractTransport<ServerTransport, Channel> {
   private volatile ChannelEventLoopGroup clientGroup;
   private volatile ChannelHandler channelHandler;

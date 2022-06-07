@@ -35,5 +35,9 @@ public interface Promise<V> extends Future<V>, Runnable {
    */
   Promise<V> setFailure(Throwable cause);
 
+  /**
+   * Returns {@link Throwable} if this asynchronous task fails with exception. Otherwise, returns
+   * null.
+   */
   Throwable cause();
 }

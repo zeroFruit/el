@@ -8,6 +8,9 @@ import io.el.channel.DefaultChannelPromise;
 import io.el.internal.ObjectUtil;
 import java.net.SocketAddress;
 
+/**
+ * A {@link ClientTransport} allows easy configure and use of {@link Channel} on the client-side.
+ */
 public class ClientTransport extends AbstractTransport<ClientTransport, Channel> {
   private ChannelHandler handler;
 

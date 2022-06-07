@@ -49,6 +49,10 @@ public class LocalServerChannel extends AbstractServerChannel {
     return state == State.CONNECTED;
   }
 
+  /**
+   * connectFrom is called when client tries to connect to the {@link LocalServerChannel}. This
+   * assumes that the client is making the connection with the server.
+   */
   protected void connectFrom(LocalChannel client) {
     this.client = client;
     this.state = State.CONNECTED;
@@ -69,7 +73,7 @@ public class LocalServerChannel extends AbstractServerChannel {
 
     @Override
     public void doBind(SocketAddress localAddress) {
-      ObjectUtil.checkNotNull(localAddress, "already bound");
+      ObjectUtil.checkNotNull(localAddress, "localAddress");
       LocalServerChannel.this.localAddress =
           LocalChannelRegistry.register(LocalServerChannel.this, localAddress);
       state = State.BOUND;

@@ -2,7 +2,20 @@ package io.el.channel;
 
 import java.net.SocketAddress;
 
+/**
+ * A {@link AbstractServerChannel} accepts an incoming connection attempt and creates a {@link
+ * Channel}s by accepting them. A server-side {@link Channel} does not allow the following
+ * operations:
+ *
+ * <ul>
+ *   <li>{@link #connect(SocketAddress)}
+ * </ul>
+ */
 public abstract class AbstractServerChannel extends AbstractChannel {
+
+  protected AbstractServerChannel() {
+    super();
+  }
 
   protected AbstractServerChannel(ChannelId id) {
     super(id);

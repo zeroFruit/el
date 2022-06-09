@@ -9,15 +9,31 @@ public class DefaultChannelPromise extends DefaultPromise<Void> implements Chann
 
   private final Channel channel;
 
+  public DefaultChannelPromise(Channel channel) {
+    super(channel.channelEventLoop(), () -> {});
+    this.channel = channel;
+  }
+
   public DefaultChannelPromise(Channel channel, EventLoop eventLoop) {
     super(eventLoop, () -> {});
     this.channel = channel;
   }
 
   @Override
-  public Promise<Void> setSuccess(Void result) {
+  public ChannelPromise setSuccess(Void result) {
     super.setSuccess(result);
     return this;
+  }
+
+  @Override
+  public ChannelPromise setFailure(Throwable cause) {
+    super.setFailure(cause);
+    return this;
+  }
+
+  @Override
+  public Throwable cause() {
+    return super.cause();
   }
 
   @Override

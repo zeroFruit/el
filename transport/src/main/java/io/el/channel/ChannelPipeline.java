@@ -1,6 +1,9 @@
 package io.el.channel;
 
-public interface ChannelPipeline extends ChannelInboundInvoker, ChannelOutboundInvoker {
+import java.util.Map.Entry;
+
+public interface ChannelPipeline
+    extends ChannelInboundInvoker, ChannelOutboundInvoker, Iterable<Entry<String, ChannelHandler>> {
   /** Add handlers to its handler chain at the end. */
   ChannelPipeline addLast(ChannelHandler... handlers);
 

@@ -34,4 +34,10 @@ public interface Promise<V> extends Future<V>, Runnable {
    * <p>If it is already success or failed then throws IllegalStateException
    */
   Promise<V> setFailure(Throwable cause);
+
+  /**
+   * Returns {@link Throwable} if this asynchronous task fails with exception. Otherwise, returns
+   * null.
+   */
+  Throwable cause();
 }

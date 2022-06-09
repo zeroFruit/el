@@ -13,4 +13,10 @@ public interface ChannelPromise extends Promise<Void> {
 
   @Override
   ChannelPromise await() throws InterruptedException;
+
+  @Override
+  ChannelPromise setFailure(Throwable cause);
+
+  @Override
+  ChannelPromise setSuccess(Void result);
 }

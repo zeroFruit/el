@@ -79,6 +79,7 @@ public class DefaultPromise<V> implements Promise<V> {
   @SuppressWarnings("unchecked")
   private void notifyListeners() {
     if (!eventLoop.inEventLoop()) {
+      eventLoop.execute(this::notifyListeners);
       return;
     }
 
@@ -181,6 +182,11 @@ public class DefaultPromise<V> implements Promise<V> {
       notifyListeners();
     }
     return this;
+  }
+
+  @Override
+  public Throwable cause() {
+    return cause;
   }
 
   @Override

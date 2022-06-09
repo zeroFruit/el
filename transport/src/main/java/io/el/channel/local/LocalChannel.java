@@ -13,28 +13,22 @@ import java.nio.channels.ClosedChannelException;
 public class LocalChannel extends AbstractChannel {
 
   public enum State {
-    OPEN,
     BOUND,
     CONNECTED,
     CLOSED
   }
 
   private volatile State state;
+
   private volatile LocalServerChannel server;
-  private volatile LocalChannel peer;
   private volatile LocalAddress localAddress;
   private volatile LocalAddress remoteAddress;
+  private volatile ChannelPromise connected;
+
+  public LocalChannel() {}
 
   public LocalChannel(ChannelId id) {
     super(id);
-  }
-
-  protected LocalChannel(ChannelId id, LocalServerChannel server, LocalChannel peer) {
-    super(id);
-    this.peer = peer;
-    this.server = server;
-    this.localAddress = server.localAddress();
-    this.remoteAddress = (LocalAddress) peer.localAddress();
   }
 
   @Override
@@ -44,13 +38,17 @@ public class LocalChannel extends AbstractChannel {
 
   @Override
   protected void doRegister() {
-    if (peer == null || server == null) {
-      return;
-    }
-    final LocalChannel peer = this.peer;
+    // NO-OP
+  }
+
+  protected void doConnect(LocalServerChannel server, ChannelPromise result) {
+    this.server = server;
+    server.connectFrom(this);
+    // TODO: implement serve
+    //      peer = serverChannel.serve(LocalChannel.this);
     state = State.CONNECTED;
-    peer.remoteAddress = (LocalAddress) localAddress();
-    peer.state = State.CONNECTED;
+    remoteAddress = this.server.localAddress();
+    result.setSuccess(null);
   }
 
   @Override
@@ -89,6 +87,11 @@ public class LocalChannel extends AbstractChannel {
         return;
       }
 
+      if (connected != null) {
+        throw new IllegalStateException("connection is in pending");
+      }
+      connected = promise;
+
       if (state != State.BOUND && localAddress == null) {
         localAddress = new LocalAddress(LocalChannel.this);
       }
@@ -99,6 +102,7 @@ public class LocalChannel extends AbstractChannel {
         } catch (Throwable t) {
           promise.setFailure(t);
           // TODO: call close
+          return;
         }
       }
 
@@ -107,16 +111,15 @@ public class LocalChannel extends AbstractChannel {
         Exception cause = new ConnectException("Connection refused: " + remoteAddress);
         promise.setFailure(cause);
         // TODO: call close
+        return;
       }
 
-      LocalServerChannel serverChannel = (LocalServerChannel) boundChannel;
-      // TODO: implement serve
-      //      peer = serverChannel.serve(LocalChannel.this);
+      doConnect((LocalServerChannel) boundChannel, promise);
     }
 
     @Override
     public void doBind(SocketAddress localAddress) {
-      ObjectUtil.checkNotNull(localAddress(), "already bound");
+      ObjectUtil.checkNotNull(localAddress(), "localAddress");
       LocalChannel.this.localAddress =
           LocalChannelRegistry.register(LocalChannel.this, localAddress);
       state = State.BOUND;

@@ -47,9 +47,8 @@ public class DefaultChannelPipeline implements ChannelPipeline {
     final AbstractChannelHandlerContext prev = this.tailContext.prev;
     // TODO: generate name with the {@link ChannelHandler.getClass()}
     String name = UUID.randomUUID().toString();
-    EventLoop eventLoop = null;
     final AbstractChannelHandlerContext newHandlerContext =
-        new DefaultChannelHandlerContext(name, this, eventLoop, handler);
+        new DefaultChannelHandlerContext(name, this, channel().channelEventLoop(), handler);
 
     this.tailContext.prev = newHandlerContext;
     newHandlerContext.next = this.tailContext;
@@ -207,16 +206,16 @@ public class DefaultChannelPipeline implements ChannelPipeline {
 
   private static final class TailContext extends AbstractChannelHandlerContext {
 
-    private final TailContextHandler context;
+    private final TailContextHandler handler;
 
     public TailContext(ChannelPipeline pipeline) {
       super(HEAD_NAME, pipeline, null, TailContextHandler.class);
-      this.context = new TailContextHandler();
+      this.handler = new TailContextHandler();
     }
 
     @Override
     public ChannelHandler handler() {
-      return this.context;
+      return this.handler;
     }
   }
 
